@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.335">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Karl Tayeb">
+<meta name="dcterms.date" content="2024-02-24">
+<meta name="description" content="This document describes different methods for computing important posterior summaries of Bayesain logistic regression: the marginal log likelihood, the posterio mean, and the posterior variance.">
+
+<title>Generalizing the Sum of Single Effects Regression - Bayesian logistic regression with a fixed prior variance</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Generalizing the Sum of Single Effects Regression</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html">
+ <span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/"><i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com"><i class="bi bi-twitter" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Bayesian logistic regression with a fixed prior variance</h1>
+                  <div>
+        <div class="description">
+          This document describes different methods for computing important posterior summaries of Bayesain logistic regression: the marginal log likelihood, the posterio mean, and the posterior variance.
+        </div>
+      </div>
+                </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Karl Tayeb </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">February 24, 2024</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#todo" id="toc-todo" class="nav-link active" data-scroll-target="#todo">TODO:</a></li>
+  <li><a href="#setup" id="toc-setup" class="nav-link" data-scroll-target="#setup">Setup</a></li>
+  <li><a href="#laplace-approximation" id="toc-laplace-approximation" class="nav-link" data-scroll-target="#laplace-approximation">Laplace Approximation</a>
+  <ul class="collapse">
+  <li><a href="#standard-laplace-approximation" id="toc-standard-laplace-approximation" class="nav-link" data-scroll-target="#standard-laplace-approximation">Standard Laplace approximation</a></li>
+  <li><a href="#other-expansion-points" id="toc-other-expansion-points" class="nav-link" data-scroll-target="#other-expansion-points">Other expansion points</a></li>
+  <li><a href="#why-expand-at-a-point-other-than-the-mode" id="toc-why-expand-at-a-point-other-than-the-mode" class="nav-link" data-scroll-target="#why-expand-at-a-point-other-than-the-mode">Why expand at a point other than the mode</a></li>
+  </ul></li>
+  <li><a href="#gauss-hermite-quadrature" id="toc-gauss-hermite-quadrature" class="nav-link" data-scroll-target="#gauss-hermite-quadrature">Gauss-Hermite quadrature</a>
+  <ul class="collapse">
+  <li><a href="#change-of-variable" id="toc-change-of-variable" class="nav-link" data-scroll-target="#change-of-variable">Change of variable</a></li>
+  <li><a href="#relationship-to-the-laplace-approximation" id="toc-relationship-to-the-laplace-approximation" class="nav-link" data-scroll-target="#relationship-to-the-laplace-approximation">Relationship to the Laplace approximation</a></li>
+  <li><a href="#discussion-of-efficiency" id="toc-discussion-of-efficiency" class="nav-link" data-scroll-target="#discussion-of-efficiency">Discussion of efficiency</a></li>
+  </ul></li>
+  <li><a href="#experiments" id="toc-experiments" class="nav-link" data-scroll-target="#experiments">Experiments</a>
+  <ul class="collapse">
+  <li><a href="#code" id="toc-code" class="nav-link" data-scroll-target="#code">Code</a></li>
+  <li><a href="#example" id="toc-example" class="nav-link" data-scroll-target="#example">Example</a></li>
+  <li><a href="#gauss-hermite-quadrature-1" id="toc-gauss-hermite-quadrature-1" class="nav-link" data-scroll-target="#gauss-hermite-quadrature-1">Gauss-Hermite Quadrature</a></li>
+  <li><a href="#gauss-hermite-at-the-map" id="toc-gauss-hermite-at-the-map" class="nav-link" data-scroll-target="#gauss-hermite-at-the-map">Gauss Hermite at the MAP</a></li>
+  <li><a href="#gauss-hermite-approximate-map" id="toc-gauss-hermite-approximate-map" class="nav-link" data-scroll-target="#gauss-hermite-approximate-map">Gauss-Hermite, approximate MAP</a></li>
+  <li><a href="#gauss-hermite-at-the-prior" id="toc-gauss-hermite-at-the-prior" class="nav-link" data-scroll-target="#gauss-hermite-at-the-prior">Gauss-Hermite at the prior</a></li>
+  </ul></li>
+  <li><a href="#dealing-with-the-intercept" id="toc-dealing-with-the-intercept" class="nav-link" data-scroll-target="#dealing-with-the-intercept">Dealing with the intercept</a>
+  <ul class="collapse">
+  <li><a href="#fixed-intercept" id="toc-fixed-intercept" class="nav-link" data-scroll-target="#fixed-intercept">Fixed intercept</a></li>
+  <li><a href="#profile-likelihood" id="toc-profile-likelihood" class="nav-link" data-scroll-target="#profile-likelihood">Profile likelihood</a></li>
+  <li><a href="#integrating-over-the-intercept" id="toc-integrating-over-the-intercept" class="nav-link" data-scroll-target="#integrating-over-the-intercept">Integrating over the intercept</a></li>
+  <li><a href="#multivariate-gauss-hermite" id="toc-multivariate-gauss-hermite" class="nav-link" data-scroll-target="#multivariate-gauss-hermite">Multivariate Gauss-Hermite</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<section id="todo" class="level2">
+<h2 class="anchored" data-anchor-id="todo">TODO:</h2>
+<ul>
+<li>JJ approximation for univariate (also may more easily accomondate inclusion of intercept, uncertainty in offset, etc)</li>
+<li>edit/expand existing sections</li>
+</ul>
+</section>
+<section id="setup" class="level2">
+<h2 class="anchored" data-anchor-id="setup">Setup</h2>
+<p>Here we consider logistic regression with a single covariate and fixed intercept. <span class="math inline">\(\tau\)</span> is a fixed prior precision.</p>
+<p><span class="math display">\[\begin{align}
+y_i | x_i, b_0 \sim \text{Bernoulli}(\sigma(b_0 + bx_9)) \\
+b \sim N(0, \tau^{-1})
+\end{align}\]</span></p>
+<p>Where <span class="math inline">\(\sigma(x) = (1 + \exp(-x))^{-1}\)</span> is the sigmoid funciton. Our goal is to compute the marginal likelihood, the posterior mean, and the posterior variance (actually we don’t need the variance…)</p>
+<p><span class="math display">\[\begin{align}
+p(y | X) &amp;= \int \prod p(y_i | x_i, b) p(b) db \\
+\mu_{\text{post}} &amp;= \int b \; p(b | y, X) \\
+\sigma^2_{\text{post}} &amp;= \int b^2 p(b | y, X) - \mu_{\text{post}}^2
+\end{align}\]</span></p>
+<p>The integrals cannot be computed in closed form, so we rely on numerical integration or approximation.</p>
+</section>
+<section id="laplace-approximation" class="level2">
+<h2 class="anchored" data-anchor-id="laplace-approximation">Laplace Approximation</h2>
+<section id="standard-laplace-approximation" class="level3">
+<h3 class="anchored" data-anchor-id="standard-laplace-approximation">Standard Laplace approximation</h3>
+<p>The Laplace approximation takes a quadratic approximation of the log-integrand. So to approximation <span class="math inline">\(\int \exp f(x) dx\)</span> we would consider the quadratic approximation <span class="math inline">\(\hat f(x; x_0) = f(x_0) + \nabla f(x_0) (x - x_0) + \frac{1}{2}(x - x_0)^T \nabla^2f(x_0) (x - x_0)\)</span>. We will write <span class="math inline">\(\hat f(x) = \hat f(x; x^*)\)</span> where <span class="math inline">\(x*\)</span> is the mode of <span class="math inline">\(f\)</span>. In this case <span class="math inline">\(\nabla f(x^*) =0\)</span> and the first order term is eliminated. Write <span class="math inline">\(\Lambda = -\nabla^2f(x^*)\)</span> the approximation can be identified as a Gaussian integral</p>
+<p><span class="math display">\[
+\begin{align}
+\int \exp f(x) \approx \int \exp \hat f(x) dx = \exp f(x^*) (2\pi)^{p/2}|\Lambda|^{-\frac{1}{2}}
+\end{align}
+\]</span></p>
+<p>In the univariate case this simplifies to <span class="math display">\[
+\begin{align}
+\int \exp f(x) \approx \int \exp \hat f(x) dx = \exp f(x^*) \sqrt{\frac{2\pi}{\lambda}}
+\end{align}
+\]</span> where <span class="math inline">\(\lambda = -\frac{d^2}{dx^2}f(x)\vert_{x= x^*}\)</span></p>
+<p>To make this explicit for our case, we make</p>
+<p><span class="math display">\[\begin{align}
+f(b)
+&amp;= \log p(y | b) + \log p(b) \\
+&amp;= \sum y_i (x_i b) - \log (1 + \exp(x_i b)) - \frac{\tau}{2} b^2 + 0.5 \times \log(\frac{\tau}{2 \pi})
+\end{align}\]</span></p>
+<p>We compute the MAP <span class="math inline">\(b^* = \arg\max_b f(b)\)</span> and then <span class="math inline">\(\frac{d^2}{db^2} f(b) = \sum_i \sigma(x_ib)\sigma(-x_i b) x_i^2\)</span> to yield the Laplace approximation.</p>
+</section>
+<section id="other-expansion-points" class="level3">
+<h3 class="anchored" data-anchor-id="other-expansion-points">Other expansion points</h3>
+<p>We discuss other Laplace type approximations. The general idea is to decompose <span class="math inline">\(f(x) = g(x) + Q(x)\)</span> where <span class="math inline">\(Q\)</span> is quadratic, then rather than making a Taylor approximation to <span class="math inline">\(f\)</span> directly, we can make a Taylor approximation of <span class="math inline">\(g\)</span>, and combine it with <span class="math inline">\(Q\)</span>. In our case we might pick <span class="math inline">\(g(b) = \log p(y | X, b)\)</span> and <span class="math inline">\(Q(b) = \log \phi(b; 0, \tau^{-1})\)</span>. In this case we would expand <span class="math inline">\(g\)</span> around the MLE <span class="math inline">\(\hat b\)</span>:</p>
+<p><span class="math display">\[\begin{align}
+\int \exp f(b) db
+&amp;= \int \exp (g(b) + Q(b)) db \\
+&amp;\approx \int \exp \hat g(b) \phi(b; 0, \tau^{-1})) db \\
+&amp;= \exp g(\hat b) (\frac{2\pi}{\nu})^{\frac{1}{2}} \int \phi(\hat b; b, \nu^{-1}) \phi(b; 0, \tau^{-1})db\\
+&amp;= \exp g(\hat b) (\frac{2\pi}{\nu})^{\frac{1}{2}} \phi(\hat b; 0, \nu^{-1} + \tau^{-1})
+\end{align}\]</span></p>
+<p>Where we recognize that the convolution of Gaussians is Gaussian with the sum of the variances.</p>
+<p>This approximation comes with a natural estimate of the posterior mean and variance, <span class="math inline">\(\mu = \frac{\nu}{\nu + \tau} \hat \beta\)</span> and <span class="math inline">\(\sigma^2 = (\nu + \tau)^{-1}\)</span>.</p>
+<p>We might also consider the choice</p>
+<p><span class="math display">\[\begin{align}
+g(b) = \log p(y | X, b) - \log \phi(b; 0, \tau_2^{-1}), \\
+Q(b) = \log \phi(b; 0, \tau^{-1}) + \log \phi(b; 0, \tau_2^{-1}).
+\end{align}\]</span></p>
+<p>For <span class="math inline">\(\tau_2\)</span> small, this might be a good alternative to expanding around the MLE, as we can be assured that the MAP always exists. However, this is probably not a good choice for <span class="math inline">\(\tau_2 &gt;&gt; \tau\)</span>.</p>
+</section>
+<section id="why-expand-at-a-point-other-than-the-mode" class="level3">
+<h3 class="anchored" data-anchor-id="why-expand-at-a-point-other-than-the-mode">Why expand at a point other than the mode</h3>
+<p>This approach is less relevant when we consider a fixed prior, because it is not harder to compute the MAP than it is to compute the MLE. However, it is of interest how accurate these approximations are across a range of prior variances. If the approximation is good, it provides an inexpensive way of tuning the prior variance– the approximate likelihood can be computed with a single evaluation of the Gaussian density function, rather than re-optimizing for each value of <span class="math inline">\(\tau^{-1}\)</span>. Note: even if we can use this approach to select <span class="math inline">\(\tau\)</span>, it is probably wise to compute a more accurate approximation of the marginal likelihood, posterior mean, and posterior variance once <span class="math inline">\(\tau\)</span> is fixed.</p>
+</section>
+</section>
+<section id="gauss-hermite-quadrature" class="level2">
+<h2 class="anchored" data-anchor-id="gauss-hermite-quadrature">Gauss-Hermite quadrature</h2>
+<p>Gauss-Hermite quadrature is a useful technique for numerical computations of integrals of the form</p>
+<p><span class="math display">\[\begin{align}
+\int f(x) \exp(-\frac{1}{2} x^2) = \sqrt{2 \pi} \mathbb E_{N(0, 1)}[f(X)]
+\end{align}\]</span></p>
+<p>The quadrature rule is given by:</p>
+<p><span class="math display">\[\begin{align}
+\int f(x) \exp(-\frac{1}{2} x^2) = \sum_i^m f(x_i) w_i
+\end{align}\]</span></p>
+<p>Where <span class="math inline">\((x_i)_{i=1}^m\)</span> are the roots of the <span class="math inline">\(m\)</span>-th Hermite polynomial. The corresponding weights <span class="math inline">\(w\)</span> can be naively determined by solving a system of equations <span class="math inline">\(Aw = b\)</span> where <span class="math inline">\(A\)</span> is a matrix giving the evaluation of <span class="math inline">\(m\)</span> functions <span class="math inline">\((f_i)_{i=1}^m\)</span> at <span class="math inline">\((x_i)_{i=1}^m\)</span> and <span class="math inline">\(b\)</span> are there integrals <span class="math inline">\(F_i = \int f_i(x) e^{-x^2}\)</span> (there are more efficient ways to compute the weights, the point is that quadrature rules are essentially determined by their choice of evaluation points and weight function). The <span class="math inline">\(f_i\)</span> must be polynomials of degree <span class="math inline">\(2m+1\)</span>, and the <span class="math inline">\(m\)</span> point quadrature rule is exact for all polynomials degree <span class="math inline">\(\leq 2m+1\)</span>, (why <span class="math inline">\(2m+1\)</span>? consider that <span class="math inline">\(f_i = \sum_{i=0}^{2m} a_ix^i\)</span> the even terms get killed in the integral).</p>
+<section id="change-of-variable" class="level3">
+<h3 class="anchored" data-anchor-id="change-of-variable">Change of variable</h3>
+<p>A simple change of variable let’s us use Gauss-Hermite quadrature to approximate expectations with respect to <span class="math inline">\(N(\mu, \sigma^2)\)</span></p>
+</section>
+<section id="relationship-to-the-laplace-approximation" class="level3">
+<h3 class="anchored" data-anchor-id="relationship-to-the-laplace-approximation">Relationship to the Laplace approximation</h3>
+<p>If we take <span class="math inline">\(\mu = b^*\)</span> and <span class="math inline">\(\sigma = \sqrt{\frac{1}{\lambda}}\)</span> the <span class="math inline">\(1\)</span>-point Gauss-Hermite quadrature is equivalent to the Laplace approximation.</p>
+</section>
+<section id="discussion-of-efficiency" class="level3">
+<h3 class="anchored" data-anchor-id="discussion-of-efficiency">Discussion of efficiency</h3>
+<p>To compute the integral <span class="math inline">\(\int g(x) dx\)</span> using Gauss-Hermite quadrature we will factor out a Gaussian density <span class="math inline">\(\int \frac{g(x)}{\phi(x; \mu, \sigma^2)} \phi(x; \mu, \sigma^2)\)</span>. We see that there is a choice in which Gaussian density to factor out. The <span class="math inline">\(m\)</span> point quadrature rule is exact for <span class="math inline">\(h(x) = \frac{g(x)}{\phi(x; \mu, \sigma^2)}\)</span> a polynomial of degree <span class="math inline">\(\leq 2m+1\)</span>. For our quadrature to be accurate we want <span class="math inline">\(h(x)\)</span> to be well approximated by a low-degree polynomial. In particular, we care that the approximation is good in the regions of <span class="math inline">\(\mathbb R\)</span> that contribute most to the integral.</p>
+<p>Integrals of this form a common in statistical applications.</p>
+<p><span class="citation" data-cites="liuNoteGaussHermite1994">(<a href="#ref-liuNoteGaussHermite1994" role="doc-biblioref">LIU and PIERCE 1994</a>)</span> <span class="citation" data-cites="jackelNoteMultivariateGaussHermite">(<a href="#ref-jackelNoteMultivariateGaussHermite" role="doc-biblioref">Jäckel, n.d.</a>)</span></p>
+</section>
+</section>
+<section id="experiments" class="level2">
+<h2 class="anchored" data-anchor-id="experiments">Experiments</h2>
+<section id="code" class="level3">
+<h3 class="anchored" data-anchor-id="code">Code</h3>
+<section id="simulation-functions" class="level4">
+<h4 class="anchored" data-anchor-id="simulation-functions">Simulation functions</h4>
+<div class="cell" data-hash="index_cache/html/c1-example_3fbed1cf8fb80b18b7a2fee9d34b96c5">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="do">##### Minimal working example</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>f <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">''</span>, <span class="fu">Sys.glob</span>(<span class="st">'cache/resources/C1*'</span>)) <span class="co"># clear cash so it can knit</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="fu">file.exists</span>(f)){<span class="fu">file.remove</span>(f)}</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>make_c1_sim <span class="ot">&lt;-</span> <span class="cf">function</span>(){</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="do">##### Minimal working example</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  c1 <span class="ot">&lt;-</span> gseasusie<span class="sc">::</span><span class="fu">load_msigdb_geneset_x</span>(<span class="st">'C1'</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># sample random 5k background genes</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set.seed</span>(<span class="dv">0</span>)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  background <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">rownames</span>(c1<span class="sc">$</span>X), <span class="dv">5000</span>)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># sample GSs to enrich, picked b0 so list is ~ 500 genes</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  enriched_gs <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">colnames</span>(c1<span class="sc">$</span>X), <span class="dv">3</span>)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  b0 <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fl">2.2</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  b <span class="ot">&lt;-</span> <span class="dv">3</span> <span class="sc">*</span><span class="fu">abs</span>(<span class="fu">rnorm</span>(<span class="fu">length</span>(enriched_gs)))</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  logit <span class="ot">&lt;-</span> b0 <span class="sc">+</span> (c1<span class="sc">$</span>X[background, enriched_gs] <span class="sc">%*%</span> b)[,<span class="dv">1</span>]</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  y1 <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(<span class="fu">length</span>(logit), <span class="dv">1</span>, <span class="dv">1</span><span class="sc">/</span>(<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>logit)))</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  list1 <span class="ot">&lt;-</span> background[y1<span class="sc">==</span><span class="dv">1</span>]</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  X <span class="ot">&lt;-</span> c1<span class="sc">$</span>X[background,]</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  X <span class="ot">&lt;-</span> X[, Matrix<span class="sc">::</span><span class="fu">colSums</span>(X) <span class="sc">&gt;</span> <span class="dv">1</span>]</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  idx <span class="ot">&lt;-</span> <span class="fu">which</span>(<span class="fu">colnames</span>(X) <span class="sc">%in%</span> enriched_gs)</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">X =</span> X, <span class="at">y =</span> y1, <span class="at">idx =</span> idx, <span class="at">b =</span> b, <span class="at">b0 =</span> b0, <span class="at">logits=</span>logit)</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="simulation-functions-1" class="level4">
+<h4 class="anchored" data-anchor-id="simulation-functions-1">Simulation functions</h4>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-1_210bfc5ac866562e4f5a0070032d74e2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>logsumexp <span class="ot">&lt;-</span> <span class="cf">function</span>(x){</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  C <span class="ot">&lt;-</span> <span class="fu">max</span>(x)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(C <span class="sc">+</span> <span class="fu">log</span>(<span class="fu">sum</span>(<span class="fu">exp</span>(x <span class="sc">-</span> C))))</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>Diff <span class="ot">&lt;-</span> <span class="cf">function</span>(f, g){<span class="fu">Vectorize</span>(<span class="cf">function</span>(b){<span class="fu">f</span>(b) <span class="sc">-</span> <span class="fu">g</span>(b)})}</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>Sum <span class="ot">&lt;-</span> <span class="cf">function</span>(f, g){<span class="fu">Vectorize</span>(<span class="cf">function</span>(b){<span class="fu">f</span>(b) <span class="sc">+</span> <span class="fu">g</span>(b)})}</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>Exp <span class="ot">&lt;-</span> logisticsusie<span class="sc">:::</span>Exp</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>Shift <span class="ot">&lt;-</span> logisticsusie<span class="sc">:::</span>Shift</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>Prod <span class="ot">&lt;-</span> <span class="cf">function</span>(f, g){<span class="fu">Vectorize</span>(<span class="cf">function</span>(b) <span class="fu">f</span>(b) <span class="sc">*</span> <span class="fu">g</span>(b))}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="expand-around-mle" class="level4">
+<h4 class="anchored" data-anchor-id="expand-around-mle">Expand around MLE</h4>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-2_5e4c8241993e37964cf4784671c335b6">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># compute log laplace bf expanded around the MLE</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>compute_laplace_lbf_mle <span class="ot">&lt;-</span> <span class="cf">function</span>(betahat, shat2, lr, prior_variance){</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  tau1 <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">/</span>shat2</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  tau0 <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">/</span>prior_variance</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  tau <span class="ot">&lt;-</span> tau1 <span class="sc">+</span> tau0</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">#lbf &lt;- lr + 0.5 * log(tau1/tau) - 0.5  * tau1 * tau0 / tau * betahat^2</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  lbf <span class="ot">&lt;-</span> lr <span class="sc">+</span> <span class="fl">0.5</span> <span class="sc">*</span> <span class="fu">log</span>(<span class="dv">2</span> <span class="sc">*</span> pi<span class="sc">/</span> tau1) <span class="sc">+</span> <span class="fu">dnorm</span>(betahat, <span class="at">mean=</span><span class="dv">0</span>, <span class="at">sd =</span> <span class="fu">sqrt</span>(shat2 <span class="sc">+</span> prior_variance))</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(lbf)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co">#' Approximate log bf and posterior with normal approximation expanding about MLE</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>laplace_mle <span class="ot">&lt;-</span> <span class="cf">function</span>(mle, <span class="at">prior_variance=</span><span class="dv">1</span>){</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  mle<span class="sc">$</span>lbf <span class="ot">&lt;-</span> <span class="fu">with</span>(mle, <span class="fu">compute_laplace_lbf_mle</span>(betahat, shat2, lr, prior_variance))</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># add approximate posterior to mle</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  tau1 <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">/</span>mle<span class="sc">$</span>shat2</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  tau0 <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">/</span>prior_variance</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  mle<span class="sc">$</span>mu <span class="ot">&lt;-</span> tau1<span class="sc">/</span>(tau0 <span class="sc">+</span> tau1) <span class="sc">*</span> mle<span class="sc">$</span>betahat</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  mle<span class="sc">$</span>tau <span class="ot">&lt;-</span> tau1 <span class="sc">+</span> tau0</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  mle<span class="sc">$</span>prior_variance <span class="ot">&lt;-</span> prior_variance</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  mle<span class="sc">$</span>logZ <span class="ot">&lt;-</span> mle<span class="sc">$</span>lbf <span class="sc">+</span> mle<span class="sc">$</span>ll0</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(mle)</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="co">#' 'unshrink' a l2 regularized fit</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>unshrink <span class="ot">&lt;-</span> <span class="cf">function</span>(fit){</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>  nu <span class="ot">&lt;-</span> fit<span class="sc">$</span>tau</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>  tau0 <span class="ot">&lt;-</span> fit<span class="sc">$</span>tau0</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>  tau <span class="ot">&lt;-</span> nu <span class="sc">-</span> tau0</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>  betahat <span class="ot">&lt;-</span>nu<span class="sc">/</span>tau <span class="sc">*</span> fit<span class="sc">$</span>mu</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>  shat2 <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">/</span>tau</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>  <span class="co"># approximates the log liklihood under the mle</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>  <span class="co">#ll &lt;- fit$ll - 0.5 * log(tau0 / (2 * pi)) + 0.5 * nu*tau0/(nu - tau0) * fit$mu^2</span></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>  <span class="co"># this it the value of log likelihood that recovers the laplace MAP logZ</span></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>  <span class="co"># should agree with formula above but maybe there seemes to be a subtle bug</span></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>  tau1 <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">/</span>shat2</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>  tau <span class="ot">&lt;-</span> tau1 <span class="sc">+</span> tau0</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>  ll <span class="ot">&lt;-</span> fit<span class="sc">$</span>logZ <span class="sc">-</span> <span class="fl">0.5</span> <span class="sc">*</span> <span class="fu">log</span>(tau1<span class="sc">/</span>tau) <span class="sc">+</span> <span class="fl">0.5</span>  <span class="sc">*</span> tau1 <span class="sc">*</span> tau0 <span class="sc">/</span> tau <span class="sc">*</span> betahat<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>  ll0 <span class="ot">&lt;-</span> fit<span class="sc">$</span>ll0</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>  lr <span class="ot">&lt;-</span> ll <span class="sc">-</span> ll0</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">betahat =</span> betahat, <span class="at">shat2 =</span> shat2, <span class="at">intercept=</span>fit<span class="sc">$</span>intercept, <span class="at">ll0 =</span> ll0, <span class="at">ll =</span> ll, <span class="at">lr =</span> lr))</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a><span class="co">#' 'unshrink' and 'reshrink'</span></span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>laplace_map <span class="ot">&lt;-</span> <span class="cf">function</span>(fit, <span class="at">prior_variance=</span><span class="dv">1</span>){</span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>  unsrhunk <span class="ot">&lt;-</span> <span class="fu">unshrink</span>(fit)</span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">laplace_mle</span>(unsrhunk, prior_variance))</span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="gauss-hermite-code" class="level4">
+<h4 class="anchored" data-anchor-id="gauss-hermite-code">Gauss-Hermite code</h4>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-3_c9eb8d32518cf761917fe7b3804c5c61">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">#' gauss-hermite quadrature for \int f(b) db</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#' centered on mu, with precision tau</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>gauss_hermite <span class="ot">&lt;-</span> <span class="cf">function</span>(f, mu, tau, ll0, <span class="at">m=</span><span class="dv">9</span>){</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># make quadrature points</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  quad_points <span class="ot">&lt;-</span> statmod<span class="sc">::</span><span class="fu">gauss.quad.prob</span>(</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    m, <span class="at">dist=</span><span class="st">'normal'</span>, <span class="at">mu=</span>mu, <span class="at">sigma=</span><span class="fu">sqrt</span>(<span class="dv">1</span><span class="sc">/</span>tau))</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># function logq(b)</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  logq <span class="ot">&lt;-</span> <span class="cf">function</span>(b){</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">dnorm</span>(b, <span class="at">mean=</span>mu, <span class="at">sd=</span><span class="fu">sqrt</span>(<span class="dv">1</span><span class="sc">/</span>tau), <span class="at">log=</span>T) </span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># compute marginal log likelihood</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  h <span class="ot">&lt;-</span> <span class="fu">Diff</span>(f, logq)</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># compute log \int f(b)/q(b) q(b) db</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  logZ <span class="ot">&lt;-</span> <span class="fu">logsumexp</span>(<span class="fu">h</span>(quad_points<span class="sc">$</span>nodes) <span class="sc">+</span> <span class="fu">log</span>(quad_points<span class="sc">$</span>weights))</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  lbf <span class="ot">&lt;-</span> logZ <span class="sc">-</span> ll0</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># compute posterior mean</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  h1 <span class="ot">&lt;-</span> <span class="fu">Prod</span>(identity, <span class="fu">Exp</span>(<span class="fu">Shift</span>(h, logZ)))</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  mu <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">h1</span>(quad_points<span class="sc">$</span>nodes) <span class="sc">*</span> quad_points<span class="sc">$</span>weights)</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>  <span class="co"># h2 &lt;- Prod(function(x){x^2}, Exp(Shift(h, logZ)))</span></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>  <span class="co"># mu2 &lt;- sum(h2(quad_points$nodes) * quad_points$weights)</span></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>  h2 <span class="ot">&lt;-</span> <span class="fu">Sum</span>(<span class="cf">function</span>(x){<span class="dv">2</span> <span class="sc">*</span> <span class="fu">abs</span>(x)}, <span class="fu">Shift</span>(h, logZ))</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>  logmu2 <span class="ot">&lt;-</span> <span class="fu">logsumexp</span>(<span class="fu">h2</span>(quad_points<span class="sc">$</span>nodes) <span class="sc">+</span> <span class="fu">log</span>(quad_points<span class="sc">$</span>weights))</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>  mu2 <span class="ot">&lt;-</span> <span class="fu">exp</span>(logmu2)</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>  var <span class="ot">&lt;-</span> mu2 <span class="sc">-</span> mu<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">lbf =</span> lbf, <span class="at">logZ =</span> logZ, <span class="at">mu=</span>mu, <span class="at">var=</span>var)</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>make_log_joint <span class="ot">&lt;-</span> <span class="cf">function</span> (x, y, o, beta0, sigma2) {</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>    ll_base <span class="ot">&lt;-</span> <span class="cf">function</span>(beta) {</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>        psi <span class="ot">&lt;-</span> beta0 <span class="sc">+</span> x <span class="sc">*</span> beta <span class="sc">+</span> o</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>        ll <span class="ot">&lt;-</span> <span class="fu">sum</span>(psi <span class="sc">*</span> y <span class="sc">-</span> <span class="fu">log</span>(<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(psi))) <span class="sc">+</span> <span class="fu">dnorm</span>(beta, </span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>            <span class="at">sd =</span> <span class="fu">sqrt</span>(sigma2), <span class="at">log =</span> T)</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>        <span class="fu">return</span>(ll)</span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>    log_joint <span class="ot">&lt;-</span> <span class="fu">Vectorize</span>(ll_base)</span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(log_joint)</span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a><span class="co">#' fit has intercept, prior_variance, mu, tau, ll0</span></span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>gauss_hermite2 <span class="ot">&lt;-</span> <span class="cf">function</span>(x, y, o, fit, <span class="at">m=</span><span class="dv">9</span>){</span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>  f <span class="ot">&lt;-</span> <span class="fu">with</span>(fit, <span class="fu">make_log_joint</span>(x, y, o, intercept, prior_variance))</span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">gauss_hermite</span>(f, fit<span class="sc">$</span>mu, fit<span class="sc">$</span>tau, ll0, <span class="at">m =</span> m))</span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="example" class="level3">
+<h3 class="anchored" data-anchor-id="example">Example</h3>
+<p>Here is a simple example where <span class="math inline">\(x_i \sim N(0, 1)\)</span> and <span class="math inline">\(p(y_i=1) = \sigma(x_i)\)</span> (<span class="math inline">\(b_0 = 0, b = 1\)</span>).</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-4_82d5e01216f3820963fde0ab780f9fac">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">1000</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(<span class="dv">1000</span>, <span class="dv">1</span>, <span class="dv">1</span><span class="sc">/</span>(<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>x)))</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>o <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="fu">length</span>(y))</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>ll0 <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">dbinom</span>(y, <span class="dv">1</span>, <span class="fu">mean</span>(y), <span class="at">log=</span>T))</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>prior_variance <span class="ot">&lt;-</span> <span class="dv">1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-5_f96ba493e080c121d028d973420141c1">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># mle</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>mle <span class="ot">&lt;-</span> logisticsusie<span class="sc">:::</span><span class="fu">fit_fast_glm</span>(x, y, <span class="fu">rep</span>(<span class="dv">0</span>, <span class="fu">length</span>(y)), ll0)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>mle <span class="ot">&lt;-</span> <span class="fu">laplace_mle</span>(mle)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>mle<span class="sc">$</span>logZ</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -590.8294</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># MAP prior variance = 1</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># this gives the MAP-based (standard) Laplace approximation</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>fit1 <span class="ot">&lt;-</span> logisticsusie<span class="sc">:::</span><span class="fu">ridge</span>(x, y, o, <span class="at">prior_variance=</span><span class="dv">1</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>fit1<span class="sc">$</span>logZ</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -592.5539</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gauss_hermite2</span>(x, y, o, fit1, <span class="at">m=</span><span class="dv">1</span>)<span class="sc">$</span>logZ <span class="co"># should agree with laplace</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -592.5539</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gauss_hermite2</span>(x, y, o, fit1, <span class="at">m=</span><span class="dv">9</span>)<span class="sc">$</span>logZ <span class="co"># note: odd number of nodes?</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -592.5533</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># unshrink, reshrink</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co"># check that our "unshrink" operation works</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>mle2 <span class="ot">&lt;-</span> <span class="fu">unshrink</span>(fit1)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>fit11 <span class="ot">&lt;-</span> <span class="fu">laplace_mle</span>(mle2, <span class="at">prior_variance =</span> <span class="dv">1</span>)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>fit11<span class="sc">$</span>logZ</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -593.2808</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># MAP prior variance = 10</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>fit10 <span class="ot">&lt;-</span> logisticsusie<span class="sc">:::</span><span class="fu">ridge</span>(x, y, o, <span class="at">prior_variance=</span><span class="dv">10</span>)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>fit10_1 <span class="ot">&lt;-</span> <span class="fu">laplace_map</span>(fit10, <span class="at">prior_variance=</span><span class="dv">1</span>)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>fit10_1<span class="sc">$</span>logZ <span class="co"># expand around MAP for prior_variance = 10, approximate logZ for prior_variance=1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -594.4258</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gauss_hermite2</span>(x, y, o, fit10_1, <span class="at">m=</span><span class="dv">1</span>)<span class="sc">$</span>logZ <span class="co"># slightly different, actually evaluates new point rather than approximate</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -592.5508</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gauss_hermite2</span>(x, y, o, fit10_1, <span class="at">m=</span><span class="dv">9</span>)<span class="sc">$</span>logZ</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -592.5533</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># MAP prior variance = 1000, basically MLE</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>fit1000 <span class="ot">&lt;-</span> logisticsusie<span class="sc">:::</span><span class="fu">ridge</span>(x, y, o, <span class="at">prior_variance=</span><span class="dv">1000</span>)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>fit1000_1 <span class="ot">&lt;-</span> <span class="fu">laplace_map</span>(fit10, <span class="at">prior_variance=</span><span class="dv">1</span>)</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>fit1000_1<span class="sc">$</span>logZ</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -594.4258</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gauss_hermite2</span>(x, y, o, fit1000_1, <span class="at">m=</span><span class="dv">1</span>)<span class="sc">$</span>logZ <span class="co"># slightly different, actually evaluates new point rather than approximate</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -592.5508</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gauss_hermite2</span>(x, y, o, fit1000_1, <span class="at">m=</span><span class="dv">9</span>)<span class="sc">$</span>logZ</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -592.5533</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># MAP prior variance = 1e-10, basically null model</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>fit1en10 <span class="ot">&lt;-</span> logisticsusie<span class="sc">:::</span><span class="fu">ridge</span>(x, y, o, <span class="at">prior_variance=</span><span class="fl">1e-10</span>)</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>fit1en10_1 <span class="ot">&lt;-</span> <span class="fu">laplace_map</span>(fit1en10, <span class="at">prior_variance=</span><span class="dv">1</span>)</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>fit1en10_1<span class="sc">$</span>logZ</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -592.7734</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># suprisingly, we can get some information out of the nearly zero effect estimate!</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gauss_hermite2</span>(x, y, o, fit1en10_1, <span class="at">m=</span><span class="dv">1</span>)<span class="sc">$</span>logZ <span class="co"># slightly different, new expansion point given by MAP approximation</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -595.9434</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gauss_hermite2</span>(x, y, o, fit1en10_1, <span class="at">m=</span><span class="dv">9</span>)<span class="sc">$</span>logZ</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -592.6643</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gauss_hermite2</span>(x, y, o, fit1en10_1, <span class="at">m=</span><span class="dv">17</span>)<span class="sc">$</span>logZ</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -592.6044</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gauss_hermite2</span>(x, y, o, fit1en10_1, <span class="at">m=</span><span class="dv">33</span>)<span class="sc">$</span>logZ</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -592.6037</code></pre>
+</div>
+</div>
+</section>
+<section id="gauss-hermite-quadrature-1" class="level3">
+<h3 class="anchored" data-anchor-id="gauss-hermite-quadrature-1">Gauss-Hermite Quadrature</h3>
+<p>Gauss-Hermite quadrature is a natural choice for integrating over normal priors. We need to make a choice about where to “center” the prior</p>
+</section>
+<section id="gauss-hermite-at-the-map" class="level3">
+<h3 class="anchored" data-anchor-id="gauss-hermite-at-the-map">Gauss Hermite at the MAP</h3>
+<p>In this simulation the Laplace approximation is extremely accurate, and it only take 4 quadrature points to get a Gauss-Hermite quadrature rule that matches adaptive quadrature.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-6_9f458ea6cd03a79290f2ce19d80fdcfe">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># adaptive quadrature</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>quad <span class="ot">&lt;-</span> logisticsusie<span class="sc">::</span><span class="fu">logistic_bayes</span>(x, y, <span class="at">prior_variance=</span>prior_variance, <span class="at">width=</span><span class="cn">Inf</span>)</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>quad<span class="sc">$</span>logZ</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -592.5533</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># MAP prior variance = 1</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>fit1 <span class="ot">&lt;-</span> logisticsusie<span class="sc">:::</span><span class="fu">ridge</span>(x, y, o, <span class="at">prior_variance=</span><span class="dv">1</span>)</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>fit1<span class="sc">$</span>logZ <span class="sc">==</span> <span class="fu">gauss_hermite2</span>(x, y, o, fit1, <span class="at">m=</span><span class="dv">1</span>)<span class="sc">$</span>logZ <span class="co"># should agree with laplace</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] TRUE</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>))</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>gh <span class="ot">&lt;-</span> purrr<span class="sc">::</span><span class="fu">map_dbl</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">32</span>, <span class="sc">~</span><span class="fu">gauss_hermite2</span>(x, y, o, fit1, <span class="at">m=</span>.x)<span class="sc">$</span>logZ)</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">32</span>, gh[<span class="dv">1</span><span class="sc">:</span><span class="dv">32</span>]); <span class="fu">abline</span>(<span class="at">h =</span> quad<span class="sc">$</span>logZ, <span class="at">col=</span><span class="st">'red'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="gauss-hermite-approximate-map" class="level3">
+<h3 class="anchored" data-anchor-id="gauss-hermite-approximate-map">Gauss-Hermite, approximate MAP</h3>
+<section id="map-mle" class="level4">
+<h4 class="anchored" data-anchor-id="map-mle">MAP-MLE</h4>
+<p>Here we first compute the MLE, and then approximate the MAP by taking a quadratic approximation of the likelihood and combining it with the prior. This approximation also gives us an approximation of the log-marginal likelihood (green), however this approximation must be distinguished from the true MAP approximation (blue), as well as the approximation yielded by expanding at the approximate MAP computed (<span class="math inline">\(m=1\)</span>).</p>
+<p>We see that the MLE-based MAP approximation is not very good. But the situation quickly improves even for the one-point Gauss-Hermite quadrature. The one point quadrature and Laplace approximation correspond when the single evaluation point is the mode, and the Gauss-Hermite quadrature rule is appropriately transformed to reflect the curvature at this point <span class="citation" data-cites="liuNoteGaussHermite1994">(<a href="#ref-liuNoteGaussHermite1994" role="doc-biblioref">LIU and PIERCE 1994</a>)</span>. However, this does not hold at the approximate MAP. First, the approximation of the likelihood at the approximate MAP is only an approximation. Second, the <span class="math inline">\(1\)</span>-point Gauss-Hermite quadrature does not quite correspond to the expansion at the approximate MAP, as the first order term in the approximation is assumed to be zero. For that to be true we must either be at the mode (so the gradient is 0) or the mean (so the expected value of the first order term is 0)$.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-7_360c1291ea6def6d6baa6577ce85f781">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># mle</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>mle <span class="ot">&lt;-</span> logisticsusie<span class="sc">:::</span><span class="fu">fit_fast_glm</span>(x, y, <span class="fu">rep</span>(<span class="dv">0</span>, <span class="fu">length</span>(y)), ll0)</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>mle <span class="ot">&lt;-</span> <span class="fu">laplace_mle</span>(mle)</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>mle<span class="sc">$</span>logZ</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -590.8294</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gauss_hermite2</span>(x, y, o, mle, <span class="at">m=</span><span class="dv">1</span>)<span class="sc">$</span>logZ <span class="co"># should agree with laplace</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -592.5505</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>gh <span class="ot">&lt;-</span> purrr<span class="sc">::</span><span class="fu">map_dbl</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">32</span>, <span class="sc">~</span><span class="fu">gauss_hermite2</span>(x, y, o, mle, <span class="at">m=</span>.x)<span class="sc">$</span>logZ)</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>))</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">32</span>, gh[<span class="dv">1</span><span class="sc">:</span><span class="dv">32</span>], <span class="at">ylim=</span><span class="fu">range</span>(gh, mle<span class="sc">$</span>logZ, fit1<span class="sc">$</span>logZ, quad<span class="sc">$</span>logZ));</span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> quad<span class="sc">$</span>logZ, <span class="at">col=</span><span class="st">'red'</span>);</span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> fit1<span class="sc">$</span>logZ, <span class="at">col=</span><span class="st">'blue'</span>);</span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> mle<span class="sc">$</span>logZ, <span class="at">col=</span><span class="st">'green'</span>);</span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">32</span>, gh[<span class="dv">1</span><span class="sc">:</span><span class="dv">32</span>], <span class="at">ylim=</span><span class="fu">range</span>(gh, fit1<span class="sc">$</span>logZ, quad<span class="sc">$</span>logZ));</span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> quad<span class="sc">$</span>logZ, <span class="at">col=</span><span class="st">'red'</span>);</span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> fit1<span class="sc">$</span>logZ, <span class="at">col=</span><span class="st">'blue'</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="map-map" class="level4">
+<h4 class="anchored" data-anchor-id="map-map">MAP-MAP</h4>
+<p>Here we compute the MAP at some other value of the prior variance. We then “unshrink” the fit, and then “reshrink” it at the prior variance of interest.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-8_103f8c2c631be5aeefacbda35a41536c">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>fit10 <span class="ot">&lt;-</span> logisticsusie<span class="sc">:::</span><span class="fu">ridge</span>(x, y, o, <span class="at">prior_variance=</span><span class="dv">10</span>)</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>fit10_1 <span class="ot">&lt;-</span> <span class="fu">laplace_map</span>(fit10, <span class="at">prior_variance=</span><span class="dv">1</span>)</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>fit10_1<span class="sc">$</span>logZ</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -594.4258</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gauss_hermite2</span>(x, y, o, fit10_1, <span class="at">m=</span><span class="dv">1</span>)<span class="sc">$</span>logZ <span class="co"># should agree with laplace</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -592.5508</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>gh <span class="ot">&lt;-</span> purrr<span class="sc">::</span><span class="fu">map_dbl</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">32</span>, <span class="sc">~</span><span class="fu">gauss_hermite2</span>(x, y, o, fit10_1, <span class="at">m=</span>.x)<span class="sc">$</span>logZ)</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>))</span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">32</span>, gh[<span class="dv">1</span><span class="sc">:</span><span class="dv">32</span>], <span class="at">ylim=</span><span class="fu">range</span>(gh, fit10_1<span class="sc">$</span>logZ, fit1<span class="sc">$</span>logZ, quad<span class="sc">$</span>logZ));</span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> quad<span class="sc">$</span>logZ, <span class="at">col=</span><span class="st">'red'</span>);</span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> fit1<span class="sc">$</span>logZ, <span class="at">col=</span><span class="st">'blue'</span>);</span>
+<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> fit10_1<span class="sc">$</span>logZ, <span class="at">col=</span><span class="st">'green'</span>);</span>
+<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">32</span>, gh[<span class="dv">1</span><span class="sc">:</span><span class="dv">32</span>], <span class="at">ylim=</span><span class="fu">range</span>(gh, fit1<span class="sc">$</span>logZ, quad<span class="sc">$</span>logZ));</span>
+<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> quad<span class="sc">$</span>logZ, <span class="at">col=</span><span class="st">'red'</span>);</span>
+<span id="cb52-11"><a href="#cb52-11" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> fit1<span class="sc">$</span>logZ, <span class="at">col=</span><span class="st">'blue'</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>The “unshrink” then “reshrink” procedure is probably better when we want to shrink more aggressively, but can be unreliable when we want to shrink less aggressively. In the extreme, we set the prior variance to a very small value. The MLE is way out in the tail of this Laplace approximation and our reconstruction can be very poor. Here we see even as we increase the number of quadrature points, the approximation fails to converge to the true value.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-9_e608c48cd5f5fad70434315547331de7">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>fit1em5 <span class="ot">&lt;-</span> logisticsusie<span class="sc">:::</span><span class="fu">ridge</span>(x, y, o, <span class="at">prior_variance=</span><span class="fl">1e-10</span>)</span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>fit1em5_1 <span class="ot">&lt;-</span> <span class="fu">laplace_map</span>(fit1em5, <span class="at">prior_variance=</span><span class="dv">1</span>)</span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>fit1em5_1<span class="sc">$</span>logZ</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -592.7734</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gauss_hermite2</span>(x, y, o, fit1em5_1, <span class="at">m=</span><span class="dv">1</span>)<span class="sc">$</span>logZ <span class="co"># should agree with laplace</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -595.9434</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>gh <span class="ot">&lt;-</span> purrr<span class="sc">::</span><span class="fu">map_dbl</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">32</span>, <span class="sc">~</span><span class="fu">gauss_hermite2</span>(x, y, o, fit1em5_1, <span class="at">m=</span>.x)<span class="sc">$</span>logZ)</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>))</span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">32</span>, gh[<span class="dv">1</span><span class="sc">:</span><span class="dv">32</span>], <span class="at">ylim=</span><span class="fu">range</span>(gh, fit1em5<span class="sc">$</span>logZ, fit1<span class="sc">$</span>logZ, quad<span class="sc">$</span>logZ));</span>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> quad<span class="sc">$</span>logZ, <span class="at">col=</span><span class="st">'red'</span>);</span>
+<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> fit1<span class="sc">$</span>logZ, <span class="at">col=</span><span class="st">'blue'</span>);</span>
+<span id="cb57-7"><a href="#cb57-7" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> fit1em5<span class="sc">$</span>logZ, <span class="at">col=</span><span class="st">'green'</span>);</span>
+<span id="cb57-8"><a href="#cb57-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-9"><a href="#cb57-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">32</span>, gh[<span class="dv">1</span><span class="sc">:</span><span class="dv">32</span>], <span class="at">ylim=</span><span class="fu">range</span>(gh, fit1<span class="sc">$</span>logZ, quad<span class="sc">$</span>logZ));</span>
+<span id="cb57-10"><a href="#cb57-10" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> quad<span class="sc">$</span>logZ, <span class="at">col=</span><span class="st">'red'</span>);</span>
+<span id="cb57-11"><a href="#cb57-11" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> fit1<span class="sc">$</span>logZ, <span class="at">col=</span><span class="st">'blue'</span>);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+</section>
+<section id="gauss-hermite-at-the-prior" class="level3">
+<h3 class="anchored" data-anchor-id="gauss-hermite-at-the-prior">Gauss-Hermite at the prior</h3>
+<p>Here we explore Gauss-Hermite quadrature over the prior <span class="math inline">\(q = N(0, \sigma^2_0)\)</span>. We see that (1) it takes a large number of quadrature points to get a good approximation of the log-marginal likelihood. and (2) the approximation error oscillates.</p>
+<p>Note that we fix the intercept at the MAP estimate of the intercept, so that we can expect as the quadrature points increase, the marginal likelihood should converge to the same result as adaptive quadrature and Gauss-Hermite at the MAP.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-10_a05225c12f724643a60e3617fb6f9fcc">
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>null_intercept <span class="ot">&lt;-</span> <span class="fu">log</span>(<span class="fu">mean</span>(y)<span class="sc">/</span><span class="fu">mean</span>(<span class="dv">1</span><span class="sc">-</span>y))</span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>ll <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">dbinom</span>(y, <span class="dv">1</span>, <span class="dv">1</span><span class="sc">/</span>(<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>quad<span class="sc">$</span>intercept)), <span class="at">log=</span>T))</span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>null <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">mu =</span> <span class="dv">0</span>, <span class="at">prior_variance=</span><span class="dv">1</span>, <span class="at">tau0 =</span> <span class="dv">1</span>, <span class="at">intercept =</span> quad<span class="sc">$</span>intercept, <span class="at">ll=</span>ll, <span class="at">ll0 =</span> ll0)</span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>gh_null <span class="ot">&lt;-</span> purrr<span class="sc">::</span><span class="fu">map_dbl</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">128</span>, <span class="sc">~</span><span class="fu">gauss_hermite2</span>(x, y, o, null, <span class="at">m=</span>.x)<span class="sc">$</span>logZ)</span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>))</span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">128</span>, gh_null[<span class="dv">1</span><span class="sc">:</span><span class="dv">128</span>]); <span class="fu">abline</span>(<span class="at">h =</span> quad<span class="sc">$</span>logZ, <span class="at">col=</span><span class="st">'red'</span>)</span>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="dv">10</span><span class="sc">:</span><span class="dv">128</span>, gh_null[<span class="dv">10</span><span class="sc">:</span><span class="dv">128</span>]); <span class="fu">abline</span>(<span class="at">h =</span> quad<span class="sc">$</span>logZ, <span class="at">col=</span><span class="st">'red'</span>)</span>
+<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="dv">100</span><span class="sc">:</span><span class="dv">128</span>, gh_null[<span class="dv">100</span><span class="sc">:</span><span class="dv">128</span>]); <span class="fu">abline</span>(<span class="at">h =</span> quad<span class="sc">$</span>logZ, <span class="at">col=</span><span class="st">'red'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+</section>
+<section id="dealing-with-the-intercept" class="level2">
+<h2 class="anchored" data-anchor-id="dealing-with-the-intercept">Dealing with the intercept</h2>
+<section id="fixed-intercept" class="level3">
+<h3 class="anchored" data-anchor-id="fixed-intercept">Fixed intercept</h3>
+<p>In the above demonstration we have worked with a fixed intercept.</p>
+<p>Notably, we still got very similar results for the MAP-MAP and MAP-MLE approaches, which used the intercept from the MAP under a <em>different setting of the prior variance</em> or the intercept from the MLE.</p>
+</section>
+<section id="profile-likelihood" class="level3">
+<h3 class="anchored" data-anchor-id="profile-likelihood">Profile likelihood</h3>
+<p>One option is a profile likelihood approach. The idea is that we replace the likelihood <span class="math inline">\(f(\beta,\beta_0)=\log p(y | \beta, \beta_0)\)</span> with <span class="math inline">\(g(\beta) = \max_{\beta_0} f(\beta, \beta_0)\)</span>. For example, under the null model (<span class="math inline">\(\beta = 0\)</span>) when there is no offset, we can easily compute the setting of the intercept that maximize <span class="math inline">\(\arg\max_{\beta_0}f(0, \beta_0) - \log \frac{\bar y}{1 - \bar y}\)</span>. I wonder if there is an analytic solution for the intercept when the offset/effects are non-zero. In this case we could cheaply update the intercept before marginalizing over <span class="math inline">\(\beta\)</span>.</p>
+<p>Otherwise, it will take a few Newton steps (e.g.&nbsp;5) to maximize the intercept, in which case we may be better off using those likelihood evaluations to integrate over the prior using a quadrature rule.</p>
+</section>
+<section id="integrating-over-the-intercept" class="level3">
+<h3 class="anchored" data-anchor-id="integrating-over-the-intercept">Integrating over the intercept</h3>
+<p>We consider integrating the intercept over a flat prior. For a given value of the effect, we would marginalize over the intercept with a Gauss-Hermite quadrature or a Laplace approximation. Here we provide code for computing the marginal likelihood where we integrate over the effect and intercept when there is a normal prior on the intercept. We set the prior variance to a large value, <span class="math inline">\(\sigma^2_{int} = 1000\)</span>, so that it is effectively a flat prior.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-11_ef0034d4f79ed5e2fec65bcc31e6fa05">
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>integrate_intercept <span class="ot">&lt;-</span> <span class="cf">function</span>(x, y, o, <span class="at">prior_variance=</span><span class="dv">1</span>, <span class="at">m_int=</span><span class="dv">5</span>, <span class="at">m=</span><span class="dv">5</span>){</span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 1. fit MAP</span></span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>  tau0 <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">/</span>prior_variance</span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>  ridgefit <span class="ot">&lt;-</span> logisticsusie<span class="sc">:::</span><span class="fu">ridge</span>(x, y, o, <span class="at">prior_variance=</span><span class="dv">1</span><span class="sc">/</span>tau0)</span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 2. make function that marginalized over the intercept (flat prior)</span></span>
+<span id="cb59-7"><a href="#cb59-7" aria-hidden="true" tabindex="-1"></a>  intercept_marginalized <span class="ot">&lt;-</span> <span class="cf">function</span>(b){</span>
+<span id="cb59-8"><a href="#cb59-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># log p(y, b | b0)</span></span>
+<span id="cb59-9"><a href="#cb59-9" aria-hidden="true" tabindex="-1"></a>    f1 <span class="ot">&lt;-</span> <span class="fu">Vectorize</span>(<span class="cf">function</span>(b0){</span>
+<span id="cb59-10"><a href="#cb59-10" aria-hidden="true" tabindex="-1"></a>      psi <span class="ot">&lt;-</span> b0 <span class="sc">+</span> x <span class="sc">*</span> b</span>
+<span id="cb59-11"><a href="#cb59-11" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(o)) {</span>
+<span id="cb59-12"><a href="#cb59-12" aria-hidden="true" tabindex="-1"></a>          psi <span class="ot">&lt;-</span> psi <span class="sc">+</span> o</span>
+<span id="cb59-13"><a href="#cb59-13" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb59-14"><a href="#cb59-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">return</span>(<span class="fu">sum</span>((y <span class="sc">*</span> psi) <span class="sc">-</span> <span class="fu">log</span>(<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(psi))) <span class="sc">+</span> <span class="fu">dnorm</span>(b, <span class="dv">0</span>, </span>
+<span id="cb59-15"><a href="#cb59-15" aria-hidden="true" tabindex="-1"></a>          <span class="at">sd =</span> <span class="fu">sqrt</span>(<span class="dv">1</span><span class="sc">/</span>tau0), <span class="at">log =</span> T) <span class="sc">+</span> <span class="fu">dnorm</span>(b0, <span class="dv">0</span>, <span class="at">sd=</span><span class="dv">10000</span>, <span class="at">log=</span>T))</span>
+<span id="cb59-16"><a href="#cb59-16" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb59-17"><a href="#cb59-17" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb59-18"><a href="#cb59-18" aria-hidden="true" tabindex="-1"></a>    <span class="co"># adaptive quadrature</span></span>
+<span id="cb59-19"><a href="#cb59-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(m_int <span class="sc">==</span> <span class="sc">-</span><span class="dv">1</span>){</span>
+<span id="cb59-20"><a href="#cb59-20" aria-hidden="true" tabindex="-1"></a>      <span class="co"># log p(y, b | b0) - logp(y, b_MAP | b0_MAP)</span></span>
+<span id="cb59-21"><a href="#cb59-21" aria-hidden="true" tabindex="-1"></a>      C <span class="ot">&lt;-</span> <span class="fu">f1</span>(ridgefit<span class="sc">$</span>intercept)</span>
+<span id="cb59-22"><a href="#cb59-22" aria-hidden="true" tabindex="-1"></a>      f2 <span class="ot">&lt;-</span> <span class="fu">Shift</span>(f1, C)</span>
+<span id="cb59-23"><a href="#cb59-23" aria-hidden="true" tabindex="-1"></a>      I <span class="ot">&lt;-</span> <span class="fu">integrate</span>(<span class="fu">Exp</span>(f2), <span class="sc">-</span><span class="cn">Inf</span>, <span class="cn">Inf</span>)</span>
+<span id="cb59-24"><a href="#cb59-24" aria-hidden="true" tabindex="-1"></a>      logZ <span class="ot">&lt;-</span> <span class="fu">log</span>(I<span class="sc">$</span>value) <span class="sc">+</span> C</span>
+<span id="cb59-25"><a href="#cb59-25" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span>{</span>
+<span id="cb59-26"><a href="#cb59-26" aria-hidden="true" tabindex="-1"></a>      <span class="co"># gauss-hermite, center at MAP</span></span>
+<span id="cb59-27"><a href="#cb59-27" aria-hidden="true" tabindex="-1"></a>      b0 <span class="ot">&lt;-</span> ridgefit<span class="sc">$</span>intercept</span>
+<span id="cb59-28"><a href="#cb59-28" aria-hidden="true" tabindex="-1"></a>      psi <span class="ot">&lt;-</span> b0 <span class="sc">+</span> x <span class="sc">*</span> b <span class="sc">+</span> o</span>
+<span id="cb59-29"><a href="#cb59-29" aria-hidden="true" tabindex="-1"></a>      mu <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">/</span>(<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>psi))</span>
+<span id="cb59-30"><a href="#cb59-30" aria-hidden="true" tabindex="-1"></a>      tau <span class="ot">&lt;-</span> <span class="fu">sum</span>(mu <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> mu))</span>
+<span id="cb59-31"><a href="#cb59-31" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb59-32"><a href="#cb59-32" aria-hidden="true" tabindex="-1"></a>      <span class="co"># function logq(b)</span></span>
+<span id="cb59-33"><a href="#cb59-33" aria-hidden="true" tabindex="-1"></a>      logq <span class="ot">&lt;-</span> <span class="cf">function</span>(x){</span>
+<span id="cb59-34"><a href="#cb59-34" aria-hidden="true" tabindex="-1"></a>        <span class="fu">dnorm</span>(x, <span class="at">mean=</span>b0, <span class="at">sd=</span><span class="fu">sqrt</span>(<span class="dv">1</span><span class="sc">/</span>tau), <span class="at">log=</span>T) </span>
+<span id="cb59-35"><a href="#cb59-35" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb59-36"><a href="#cb59-36" aria-hidden="true" tabindex="-1"></a>      h <span class="ot">&lt;-</span> <span class="fu">Diff</span>(f1, logq)</span>
+<span id="cb59-37"><a href="#cb59-37" aria-hidden="true" tabindex="-1"></a>      quad_points <span class="ot">&lt;-</span> statmod<span class="sc">::</span><span class="fu">gauss.quad.prob</span>(m_int, <span class="at">dist=</span><span class="st">'normal'</span>, <span class="at">mu=</span>b0, <span class="at">sigma=</span><span class="fu">sqrt</span>(<span class="dv">1</span><span class="sc">/</span>tau))</span>
+<span id="cb59-38"><a href="#cb59-38" aria-hidden="true" tabindex="-1"></a>      logZ <span class="ot">&lt;-</span> <span class="fu">logsumexp</span>(<span class="fu">h</span>(quad_points<span class="sc">$</span>nodes) <span class="sc">+</span> <span class="fu">log</span>(quad_points<span class="sc">$</span>weights))</span>
+<span id="cb59-39"><a href="#cb59-39" aria-hidden="true" tabindex="-1"></a>      logZ</span>
+<span id="cb59-40"><a href="#cb59-40" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb59-41"><a href="#cb59-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(logZ)</span>
+<span id="cb59-42"><a href="#cb59-42" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb59-43"><a href="#cb59-43" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb59-44"><a href="#cb59-44" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 3. compute marginal likelihood</span></span>
+<span id="cb59-45"><a href="#cb59-45" aria-hidden="true" tabindex="-1"></a>  C <span class="ot">&lt;-</span> <span class="fu">intercept_marginalized</span>(ridgefit<span class="sc">$</span>mu)</span>
+<span id="cb59-46"><a href="#cb59-46" aria-hidden="true" tabindex="-1"></a>  f2 <span class="ot">&lt;-</span> <span class="fu">Shift</span>(intercept_marginalized, C)</span>
+<span id="cb59-47"><a href="#cb59-47" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb59-48"><a href="#cb59-48" aria-hidden="true" tabindex="-1"></a>  <span class="co"># function logq(b)</span></span>
+<span id="cb59-49"><a href="#cb59-49" aria-hidden="true" tabindex="-1"></a>  logq <span class="ot">&lt;-</span> <span class="cf">function</span>(x){</span>
+<span id="cb59-50"><a href="#cb59-50" aria-hidden="true" tabindex="-1"></a>    <span class="fu">dnorm</span>(x, <span class="at">mean=</span>ridgefit<span class="sc">$</span>mu, <span class="at">sd=</span><span class="fu">sqrt</span>(<span class="dv">1</span><span class="sc">/</span>ridgefit<span class="sc">$</span>tau), <span class="at">log=</span>T) </span>
+<span id="cb59-51"><a href="#cb59-51" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb59-52"><a href="#cb59-52" aria-hidden="true" tabindex="-1"></a>  h <span class="ot">&lt;-</span> <span class="fu">Diff</span>(intercept_marginalized, logq)</span>
+<span id="cb59-53"><a href="#cb59-53" aria-hidden="true" tabindex="-1"></a>  quad_points <span class="ot">&lt;-</span> statmod<span class="sc">::</span><span class="fu">gauss.quad.prob</span>(m, <span class="at">dist=</span><span class="st">'normal'</span>, <span class="at">mu=</span>ridgefit<span class="sc">$</span>mu, <span class="at">sigma=</span><span class="fu">sqrt</span>(<span class="dv">1</span><span class="sc">/</span>ridgefit<span class="sc">$</span>tau))</span>
+<span id="cb59-54"><a href="#cb59-54" aria-hidden="true" tabindex="-1"></a>  logZ <span class="ot">&lt;-</span> <span class="fu">logsumexp</span>(<span class="fu">h</span>(quad_points<span class="sc">$</span>nodes) <span class="sc">+</span> <span class="fu">log</span>(quad_points<span class="sc">$</span>weights))</span>
+<span id="cb59-55"><a href="#cb59-55" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(logZ)</span>
+<span id="cb59-56"><a href="#cb59-56" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We see close agreement between the 1 x 1 and 64 x 64 Gauss-Hermite quadrature rules. This suggests that we can effectively integrate over both the intercept and the prior with just a few likelihood evaluations.</p>
+<p>Note that when we use the Laplace approximation (or <span class="math inline">\(1\)</span>-point Gauss-Hermite quadrature) we effectively scale the fixed-intercept BFs by <span class="math inline">\(\sqrt{\frac{2\pi}{\tau_{int}}}\)</span>. where <span class="math inline">\(\tau_{int} = \frac{d^2}{d\beta_0^2} \log p(y, \hat \beta, \beta_0 | x) \vert_{\beta_0 = \hat \beta_0}\)</span>.</p>
+<p>Consider this nested 1d quadrature scheme. In the <span class="math inline">\(1 \times 1\)</span> case it seems to correspond to a “diagonalized” Laplace approximation. In particular it does not take into account the dependence between the intercept and effect.</p>
+<p>Perhaps the correct thing to do is a multivariate Gauss-Hermite quadrature <span class="citation" data-cites="jackelNoteMultivariateGaussHermite">(<a href="#ref-jackelNoteMultivariateGaussHermite" role="doc-biblioref">Jäckel, n.d.</a>)</span>. This is an obvious extension to the 1d Gauss-Hermite quadrature rule, and it would allow us to more accurately deal with the dependence between the intercept and effect estimates. As discuessed in the reference, different decompositions of the covariance matrix will yield different quadrature rules.But basically, you should think of taking the isotropic 2d quadrature rule and rotating + stretching it to align it with a local model of the curvature at the mode.</p>
+<p>It’s worth noting that the cost of computing a decomposition of a <span class="math inline">\(2 \times 2\)</span> matrix is negligible compared to the cost of evaluating the likelihood at a single point. It probably makes sense to invest in taking this step because it allows us to better invest our our evaluation points.</p>
+<p>It is satisfying also, that we restore our relationship between the (multivariate) Gauss-Hermite and the (multivariate) Laplace approximation in the <span class="math inline">\(1\)</span>-point quadrature rule (TODO: confirm this!).</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-12_efad2adbf5427d080140b03e8bae394e">
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate_intercept</span>(x, y, o, <span class="dv">1</span>, <span class="at">m_int=</span><span class="dv">1</span>, <span class="at">m=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -604.4207</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate_intercept</span>(x, y, o, <span class="dv">1</span>, <span class="at">m_int=</span><span class="sc">-</span><span class="dv">1</span>, <span class="at">m=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -604.4205</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate_intercept</span>(x, y, o, <span class="dv">1</span>, <span class="at">m_int=</span><span class="dv">1</span>, <span class="at">m=</span><span class="dv">64</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -604.4195</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate_intercept</span>(x, y, o, <span class="dv">1</span>, <span class="at">m_int=</span><span class="sc">-</span><span class="dv">1</span>, <span class="at">m=</span><span class="dv">64</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -604.4192</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate_intercept</span>(x, y, o, <span class="dv">1</span>, <span class="at">m_int=</span><span class="dv">3</span>, <span class="at">m=</span><span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -604.4197</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate_intercept</span>(x, y, o, <span class="dv">1</span>, <span class="at">m_int=</span><span class="dv">5</span>, <span class="at">m=</span><span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -604.4192</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate_intercept</span>(x, y, o, <span class="dv">1</span>, <span class="at">m_int=</span><span class="dv">1</span>, <span class="at">m=</span><span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -604.4195</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate_intercept</span>(x, y, o, <span class="dv">1</span>, <span class="at">m_int=</span><span class="dv">1</span>, <span class="at">m=</span><span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -604.4195</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate_intercept</span>(x, y, o, <span class="dv">1</span>, <span class="at">m_int=</span><span class="dv">64</span>, <span class="at">m=</span><span class="dv">64</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -604.4192</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb78"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate_intercept</span>(x, y, o, <span class="dv">1</span>, <span class="at">m_int=</span><span class="dv">128</span>, <span class="at">m=</span><span class="dv">128</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -604.4192</code></pre>
+</div>
+</div>
+</section>
+<section id="multivariate-gauss-hermite" class="level3">
+<h3 class="anchored" data-anchor-id="multivariate-gauss-hermite">Multivariate Gauss-Hermite</h3>
+<p><span class="math inline">\(\Sigma = LL^T\)</span> is a covariance matrix and it’s corresponding Cholesky decomposition. So that if <span class="math inline">\({\bf z} \sim N(0, I)\)</span> then <span class="math inline">\(L {\bf z} + \mu \sim N(\mu, \Sigma)\)</span>. With <span class="math inline">\({\bf b}({\bf z}) = L {\bf z} + \mu\)</span></p>
+<p><span class="math display">\[\begin{align}
+p(y)
+&amp;= \int_{\mathbb R^2} \frac{p(y, {\bf b})}{q({\bf b})} q({\bf b}) d{\bf b} \\
+&amp;= \int_{\mathbb R^2} \frac{p(y, {\bf b})}{\exp\{-\frac{1}{2} ({\bf b} - \mu)^T \Sigma^{-1} ({\bf b}-\mu) \}} \exp\{-\frac{1}{2} ({\bf b} - \mu)^T \Sigma^{-1} ({\bf b}-\mu) \} d{\bf b} \\
+&amp;= \det L \int_{\mathbb R^2} \frac{p(y, {\bf b}({\bf z}))}{\exp\{-\frac{1}{2} {\bf z}^T {\bf z} \}} \exp\{-\frac{1}{2} {\bf z}^T {\bf z} \} d{\bf z}
+\end{align}\]</span></p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-13_47b4d6890ffb1e0ab5b4cd518018deaa">
+<div class="sourceCode cell-code" id="cb80"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">1000</span>)</span>
+<span id="cb80-2"><a href="#cb80-2" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(<span class="dv">1000</span>, <span class="dv">1</span>, <span class="dv">1</span><span class="sc">/</span>(<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>x)))</span>
+<span id="cb80-3"><a href="#cb80-3" aria-hidden="true" tabindex="-1"></a>o <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="fu">length</span>(y))</span>
+<span id="cb80-4"><a href="#cb80-4" aria-hidden="true" tabindex="-1"></a>ll0 <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">dbinom</span>(y, <span class="dv">1</span>, <span class="fu">mean</span>(y), <span class="at">log=</span>T))</span>
+<span id="cb80-5"><a href="#cb80-5" aria-hidden="true" tabindex="-1"></a>prior_variance <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb80-6"><a href="#cb80-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-7"><a href="#cb80-7" aria-hidden="true" tabindex="-1"></a>map <span class="ot">&lt;-</span> logisticsusie<span class="sc">:::</span><span class="fu">ridge</span>(x, y, o, <span class="at">prior_variance=</span><span class="dv">1</span>)</span>
+<span id="cb80-8"><a href="#cb80-8" aria-hidden="true" tabindex="-1"></a>X0 <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="fu">rep</span>(<span class="dv">1</span>, <span class="fu">length</span>(x)), x)</span>
+<span id="cb80-9"><a href="#cb80-9" aria-hidden="true" tabindex="-1"></a>psi <span class="ot">&lt;-</span> map<span class="sc">$</span>intercept <span class="sc">+</span> x <span class="sc">*</span> map<span class="sc">$</span>mu <span class="sc">+</span> o</span>
+<span id="cb80-10"><a href="#cb80-10" aria-hidden="true" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">/</span>(<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>psi)) </span>
+<span id="cb80-11"><a href="#cb80-11" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">t</span>(X0) <span class="sc">%*%</span> (y <span class="sc">-</span> mu) <span class="sc">+</span> <span class="fu">c</span>(<span class="dv">0</span>, map<span class="sc">$</span>mu<span class="sc">/</span>prior_variance)</span>
+<span id="cb80-12"><a href="#cb80-12" aria-hidden="true" tabindex="-1"></a>H <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fu">t</span>(X0) <span class="sc">%*%</span> (mu <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> mu) <span class="sc">*</span> X0) <span class="sc">-</span> <span class="fu">diag</span>(<span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span><span class="sc">/</span>prior_variance))</span>
+<span id="cb80-13"><a href="#cb80-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-14"><a href="#cb80-14" aria-hidden="true" tabindex="-1"></a><span class="co"># posterior precision is -H</span></span>
+<span id="cb80-15"><a href="#cb80-15" aria-hidden="true" tabindex="-1"></a><span class="co"># LL^T = Sigma = -H^{-1}</span></span>
+<span id="cb80-16"><a href="#cb80-16" aria-hidden="true" tabindex="-1"></a>L <span class="ot">&lt;-</span> <span class="fu">solve</span>(<span class="fu">chol</span>(<span class="sc">-</span>H))</span>
+<span id="cb80-17"><a href="#cb80-17" aria-hidden="true" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>, map<span class="sc">$</span>mu)</span>
+<span id="cb80-18"><a href="#cb80-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-19"><a href="#cb80-19" aria-hidden="true" tabindex="-1"></a>f1 <span class="ot">&lt;-</span> <span class="fu">Vectorize</span>(<span class="cf">function</span>(b0, b1){</span>
+<span id="cb80-20"><a href="#cb80-20" aria-hidden="true" tabindex="-1"></a>  psi <span class="ot">&lt;-</span> b0 <span class="sc">+</span> x <span class="sc">*</span> b1 <span class="sc">+</span> o</span>
+<span id="cb80-21"><a href="#cb80-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">sum</span>((y <span class="sc">*</span> psi) <span class="sc">-</span> <span class="fu">log</span>(<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(psi))) <span class="sc">+</span> <span class="fu">dnorm</span>(b1, <span class="dv">0</span>, <span class="at">sd =</span> <span class="fu">sqrt</span>(prior_variance), <span class="at">log =</span> T) <span class="sc">+</span> <span class="fu">dnorm</span>(b0, <span class="dv">0</span>, <span class="at">sd=</span><span class="dv">10000</span>, <span class="at">log=</span>T))</span>
+<span id="cb80-22"><a href="#cb80-22" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb80-23"><a href="#cb80-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-24"><a href="#cb80-24" aria-hidden="true" tabindex="-1"></a>f2 <span class="ot">&lt;-</span> <span class="fu">Vectorize</span>(<span class="cf">function</span>(z1, z2){</span>
+<span id="cb80-25"><a href="#cb80-25" aria-hidden="true" tabindex="-1"></a>  z <span class="ot">&lt;-</span> <span class="fu">c</span>(z1, z2)</span>
+<span id="cb80-26"><a href="#cb80-26" aria-hidden="true" tabindex="-1"></a>  beta <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="dv">2</span>) <span class="sc">*</span> (L<span class="sc">%*%</span>z)[,<span class="dv">1</span>] <span class="sc">+</span> mu</span>
+<span id="cb80-27"><a href="#cb80-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">f1</span>(beta[<span class="dv">1</span>], beta[<span class="dv">2</span>]) <span class="sc">+</span> <span class="fl">0.5</span> <span class="sc">*</span> <span class="fu">sum</span>(z<span class="sc">*</span>z)</span>
+<span id="cb80-28"><a href="#cb80-28" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb80-29"><a href="#cb80-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-30"><a href="#cb80-30" aria-hidden="true" tabindex="-1"></a>C <span class="ot">&lt;-</span> <span class="fu">f1</span>(map<span class="sc">$</span>intercept, map<span class="sc">$</span>mu)</span>
+<span id="cb80-31"><a href="#cb80-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-32"><a href="#cb80-32" aria-hidden="true" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="dv">9</span></span>
+<span id="cb80-33"><a href="#cb80-33" aria-hidden="true" tabindex="-1"></a>quad_points <span class="ot">&lt;-</span> statmod<span class="sc">::</span><span class="fu">gauss.quad.prob</span>(m, <span class="at">dist=</span><span class="st">'normal'</span>, <span class="at">mu=</span><span class="dv">0</span>, <span class="at">sigma=</span><span class="dv">1</span>)</span>
+<span id="cb80-34"><a href="#cb80-34" aria-hidden="true" tabindex="-1"></a>quad_points <span class="ot">&lt;-</span> statmod<span class="sc">::</span><span class="fu">gauss.quad</span>(m, <span class="at">kind=</span><span class="st">'hermite'</span>)</span>
+<span id="cb80-35"><a href="#cb80-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-36"><a href="#cb80-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-37"><a href="#cb80-37" aria-hidden="true" tabindex="-1"></a>z1 <span class="ot">&lt;-</span> <span class="fu">rep</span>(quad_points<span class="sc">$</span>nodes, m)</span>
+<span id="cb80-38"><a href="#cb80-38" aria-hidden="true" tabindex="-1"></a>z2 <span class="ot">&lt;-</span> <span class="fu">rep</span>(quad_points<span class="sc">$</span>nodes, <span class="at">each=</span>m)</span>
+<span id="cb80-39"><a href="#cb80-39" aria-hidden="true" tabindex="-1"></a>Z <span class="ot">&lt;-</span> <span class="fu">cbind</span>(z1, z2)</span>
+<span id="cb80-40"><a href="#cb80-40" aria-hidden="true" tabindex="-1"></a>w <span class="ot">&lt;-</span> <span class="fu">rep</span>(quad_points<span class="sc">$</span>weights, m) <span class="sc">*</span> <span class="fu">rep</span>(quad_points<span class="sc">$</span>weights, <span class="at">each=</span>m)</span>
+<span id="cb80-41"><a href="#cb80-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-42"><a href="#cb80-42" aria-hidden="true" tabindex="-1"></a>logZ <span class="ot">&lt;-</span> <span class="fu">sum</span>(<span class="fu">log</span>(<span class="fu">diag</span>(L))) <span class="sc">+</span> <span class="fu">logsumexp</span>(<span class="fu">f2</span>(z1, z2) <span class="sc">+</span> <span class="fu">log</span>(w))</span>
+<span id="cb80-43"><a href="#cb80-43" aria-hidden="true" tabindex="-1"></a>logZ</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -589.2138</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb82"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate_intercept</span>(x, y, o, <span class="dv">1</span>, <span class="at">m_int=</span><span class="dv">9</span>, <span class="at">m=</span><span class="dv">9</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -587.7452</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb84"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a>mle <span class="ot">&lt;-</span> logisticsusie<span class="sc">:::</span><span class="fu">fit_fast_glm</span>(x, y, <span class="fu">rep</span>(<span class="dv">0</span>, <span class="fu">length</span>(y)), ll0)</span>
+<span id="cb84-2"><a href="#cb84-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb84-3"><a href="#cb84-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb84-4"><a href="#cb84-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb84-5"><a href="#cb84-5" aria-hidden="true" tabindex="-1"></a><span class="co"># -H^{-1} = Q %*% t(Q)</span></span>
+<span id="cb84-6"><a href="#cb84-6" aria-hidden="true" tabindex="-1"></a>Q <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">with</span>(<span class="fu">svd</span>(<span class="sc">-</span>H), <span class="fu">diag</span>(<span class="dv">1</span><span class="sc">/</span><span class="fu">sqrt</span>(d)) <span class="sc">%*%</span> <span class="fu">t</span>(v)))</span>
+<span id="cb84-7"><a href="#cb84-7" aria-hidden="true" tabindex="-1"></a>quad_points <span class="ot">&lt;-</span> statmod<span class="sc">::</span><span class="fu">gauss.quad.prob</span>(<span class="dv">9</span>, <span class="at">dist=</span><span class="st">'normal'</span>, <span class="at">mu=</span><span class="dv">0</span>, <span class="at">sigma=</span><span class="dv">1</span>)</span>
+<span id="cb84-8"><a href="#cb84-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb84-9"><a href="#cb84-9" aria-hidden="true" tabindex="-1"></a><span class="co"># make a grid of x, y points where x and y both take values from quad_points$nodes</span></span>
+<span id="cb84-10"><a href="#cb84-10" aria-hidden="true" tabindex="-1"></a>m <span class="ot">=</span> <span class="dv">16</span></span>
+<span id="cb84-11"><a href="#cb84-11" aria-hidden="true" tabindex="-1"></a>z1 <span class="ot">&lt;-</span> <span class="fu">rep</span>(quad_points<span class="sc">$</span>nodes, m)</span>
+<span id="cb84-12"><a href="#cb84-12" aria-hidden="true" tabindex="-1"></a>z2 <span class="ot">&lt;-</span> <span class="fu">rep</span>(quad_points<span class="sc">$</span>nodes, <span class="at">each=</span>m)</span>
+<span id="cb84-13"><a href="#cb84-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb84-14"><a href="#cb84-14" aria-hidden="true" tabindex="-1"></a><span class="co"># get evaluation points</span></span>
+<span id="cb84-15"><a href="#cb84-15" aria-hidden="true" tabindex="-1"></a>Qz <span class="ot">&lt;-</span> Q <span class="sc">%*%</span> <span class="fu">rbind</span>(z1, z2)</span>
+<span id="cb84-16"><a href="#cb84-16" aria-hidden="true" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> Qz[<span class="dv">1</span>,] <span class="sc">+</span> mle<span class="sc">$</span>intercept</span>
+<span id="cb84-17"><a href="#cb84-17" aria-hidden="true" tabindex="-1"></a>y2 <span class="ot">&lt;-</span> Qz[<span class="dv">2</span>,] <span class="sc">+</span> mle<span class="sc">$</span>betahat</span>
+<span id="cb84-18"><a href="#cb84-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb84-19"><a href="#cb84-19" aria-hidden="true" tabindex="-1"></a>f1 <span class="ot">&lt;-</span> <span class="fu">Vectorize</span>(<span class="cf">function</span>(b0, b1){</span>
+<span id="cb84-20"><a href="#cb84-20" aria-hidden="true" tabindex="-1"></a>    psi <span class="ot">&lt;-</span> b0 <span class="sc">+</span> x <span class="sc">*</span> b1 <span class="sc">+</span> o</span>
+<span id="cb84-21"><a href="#cb84-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">sum</span>((y <span class="sc">*</span> psi) <span class="sc">-</span> <span class="fu">log</span>(<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(psi)))) </span>
+<span id="cb84-22"><a href="#cb84-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># + dnorm(b, 0, sd = sqrt(1/tau0), log = T) + dnorm(b0, 0, sd=10000, log=T))</span></span>
+<span id="cb84-23"><a href="#cb84-23" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb84-24"><a href="#cb84-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb84-25"><a href="#cb84-25" aria-hidden="true" tabindex="-1"></a><span class="co">#w &lt;- rep(quad_points$weights, m) * rep(quad_points$weights, each=m) - 0.5 * log(det(-H)) + 0.5 * nrow(H) * log(2*pi) +  logsumexp(f1(x2, y2) - C + log(w))</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-14_b58e09aa83edb1a1c7928156bd3273e1">
+<div class="sourceCode cell-code" id="cb85"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a><span class="co">#logsumexp(f1(x2, y2) + log(w))</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-15_abd4556a617d48c98c8be1a5c8c3f6fa">
+<div class="sourceCode cell-code" id="cb86"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a>C <span class="ot">&lt;-</span> <span class="fu">f1</span>(mle<span class="sc">$</span>intercept, mle<span class="sc">$</span>betahat)</span>
+<span id="cb86-2"><a href="#cb86-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb86-3"><a href="#cb86-3" aria-hidden="true" tabindex="-1"></a>f2 <span class="ot">&lt;-</span> <span class="cf">function</span>(b1){<span class="fu">Vectorize</span>(<span class="cf">function</span>(b0){<span class="fu">f1</span>(b0, b1)})}</span>
+<span id="cb86-4"><a href="#cb86-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb86-5"><a href="#cb86-5" aria-hidden="true" tabindex="-1"></a>f3 <span class="ot">&lt;-</span> <span class="fu">Vectorize</span>(<span class="cf">function</span>(b1){</span>
+<span id="cb86-6"><a href="#cb86-6" aria-hidden="true" tabindex="-1"></a>  g <span class="ot">&lt;-</span> <span class="fu">f2</span>(b1)</span>
+<span id="cb86-7"><a href="#cb86-7" aria-hidden="true" tabindex="-1"></a>  g2 <span class="ot">&lt;-</span> <span class="fu">Exp</span>(<span class="fu">Shift</span>(g, C))</span>
+<span id="cb86-8"><a href="#cb86-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">log</span>(<span class="fu">integrate</span>(g2, <span class="sc">-</span><span class="cn">Inf</span>, <span class="cn">Inf</span>)<span class="sc">$</span>value) <span class="sc">+</span> C)</span>
+<span id="cb86-9"><a href="#cb86-9" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb86-10"><a href="#cb86-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb86-11"><a href="#cb86-11" aria-hidden="true" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="fu">Exp</span>(<span class="fu">Shift</span>(f3, C))</span>
+<span id="cb86-12"><a href="#cb86-12" aria-hidden="true" tabindex="-1"></a><span class="fu">log</span>(<span class="fu">integrate</span>(h, <span class="sc">-</span><span class="cn">Inf</span>, <span class="cn">Inf</span>)<span class="sc">$</span>value) <span class="sc">+</span> C</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -575.9966</code></pre>
+</div>
+</div>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-16_1ab5de2399ecf03fa5858a874b9d860b">
+<div class="sourceCode cell-code" id="cb88"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a><span class="fu">integrate_intercept</span>(x, y, o, <span class="dv">1</span>, <span class="at">m_int=</span><span class="dv">64</span>, <span class="at">m=</span><span class="dv">64</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -587.7452</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb90"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb90-1"><a href="#cb90-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
+<span id="cb90-2"><a href="#cb90-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(z1, z2)</span>
+<span id="cb90-3"><a href="#cb90-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x2, y2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-17_88f94217e9b8e92459ea43584ffa95fa">
+<div class="sourceCode cell-code" id="cb91"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a>ridgefit <span class="ot">&lt;-</span> logisticsusie<span class="sc">:::</span><span class="fu">ridge</span>(x, y, o, <span class="at">prior_variance=</span><span class="dv">1</span>)</span>
+<span id="cb91-2"><a href="#cb91-2" aria-hidden="true" tabindex="-1"></a>f1 <span class="ot">&lt;-</span> <span class="fu">log_joint2</span>(x, y, o, <span class="dv">1</span>)</span>
+<span id="cb91-3"><a href="#cb91-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb91-4"><a href="#cb91-4" aria-hidden="true" tabindex="-1"></a>b <span class="ot">&lt;-</span> ridgefit<span class="sc">$</span>mu <span class="sc">+</span> <span class="dv">4</span></span>
+<span id="cb91-5"><a href="#cb91-5" aria-hidden="true" tabindex="-1"></a>f2 <span class="ot">&lt;-</span> <span class="cf">function</span>(b0){<span class="fu">f1</span>(<span class="at">b=</span>b, b0)}</span>
+<span id="cb91-6"><a href="#cb91-6" aria-hidden="true" tabindex="-1"></a><span class="co"># adaptive quadrature</span></span>
+<span id="cb91-7"><a href="#cb91-7" aria-hidden="true" tabindex="-1"></a>f3 <span class="ot">&lt;-</span> <span class="fu">Shift</span>(f2, ridgefit<span class="sc">$</span>ll)</span>
+<span id="cb91-8"><a href="#cb91-8" aria-hidden="true" tabindex="-1"></a><span class="fu">log</span>(<span class="fu">integrate</span>(<span class="fu">Exp</span>(f3), <span class="sc">-</span><span class="cn">Inf</span>, <span class="cn">Inf</span>)<span class="sc">$</span>value)</span>
+<span id="cb91-9"><a href="#cb91-9" aria-hidden="true" tabindex="-1"></a>I <span class="ot">&lt;-</span> <span class="fu">integrate</span>(<span class="fu">Exp</span>(f3), <span class="sc">-</span><span class="cn">Inf</span>, <span class="cn">Inf</span>)</span>
+<span id="cb91-10"><a href="#cb91-10" aria-hidden="true" tabindex="-1"></a><span class="fu">log</span>(I<span class="sc">$</span>value) <span class="sc">+</span> ridgefit<span class="sc">$</span>ll</span>
+<span id="cb91-11"><a href="#cb91-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb91-12"><a href="#cb91-12" aria-hidden="true" tabindex="-1"></a><span class="co"># gauss-hermite</span></span>
+<span id="cb91-13"><a href="#cb91-13" aria-hidden="true" tabindex="-1"></a>b0 <span class="ot">&lt;-</span> ridgefit<span class="sc">$</span>intercept</span>
+<span id="cb91-14"><a href="#cb91-14" aria-hidden="true" tabindex="-1"></a>psi <span class="ot">&lt;-</span> b0 <span class="sc">+</span> x <span class="sc">*</span> b</span>
+<span id="cb91-15"><a href="#cb91-15" aria-hidden="true" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">/</span>(<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>psi))</span>
+<span id="cb91-16"><a href="#cb91-16" aria-hidden="true" tabindex="-1"></a>tau <span class="ot">&lt;-</span> <span class="fu">sum</span>(mu <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> mu))</span>
+<span id="cb91-17"><a href="#cb91-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb91-18"><a href="#cb91-18" aria-hidden="true" tabindex="-1"></a><span class="co"># function logq(b)</span></span>
+<span id="cb91-19"><a href="#cb91-19" aria-hidden="true" tabindex="-1"></a>logq <span class="ot">&lt;-</span> <span class="cf">function</span>(x){</span>
+<span id="cb91-20"><a href="#cb91-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dnorm</span>(x, <span class="at">mean=</span>b0, <span class="at">sd=</span><span class="fu">sqrt</span>(<span class="dv">1</span><span class="sc">/</span>tau), <span class="at">log=</span>T) </span>
+<span id="cb91-21"><a href="#cb91-21" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb91-22"><a href="#cb91-22" aria-hidden="true" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="fu">Diff</span>(f3, logq)</span>
+<span id="cb91-23"><a href="#cb91-23" aria-hidden="true" tabindex="-1"></a>quad_points <span class="ot">&lt;-</span> statmod<span class="sc">::</span><span class="fu">gauss.quad.prob</span>(<span class="dv">9</span>, <span class="at">dist=</span><span class="st">'normal'</span>, <span class="at">mu=</span>b0, <span class="at">sigma=</span><span class="fu">sqrt</span>(<span class="dv">1</span><span class="sc">/</span>tau))</span>
+<span id="cb91-24"><a href="#cb91-24" aria-hidden="true" tabindex="-1"></a>logZ <span class="ot">&lt;-</span> <span class="fu">logsumexp</span>(<span class="fu">h</span>(quad_points<span class="sc">$</span>nodes) <span class="sc">+</span> <span class="fu">log</span>(quad_points<span class="sc">$</span>weights)) <span class="sc">+</span> ridgefit<span class="sc">$</span>ll</span>
+<span id="cb91-25"><a href="#cb91-25" aria-hidden="true" tabindex="-1"></a>logZ</span>
+<span id="cb91-26"><a href="#cb91-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb91-27"><a href="#cb91-27" aria-hidden="true" tabindex="-1"></a><span class="fu">gauss_hermite</span>(f3, b0, var, <span class="dv">0</span>)</span>
+<span id="cb91-28"><a href="#cb91-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb91-29"><a href="#cb91-29" aria-hidden="true" tabindex="-1"></a><span class="fu">log</span>(<span class="fu">sum</span>(<span class="fu">exp</span>(<span class="fu">f3</span>(quad_points<span class="sc">$</span>nodes)) <span class="sc">*</span> quad_points<span class="sc">$</span>weights))</span>
+<span id="cb91-30"><a href="#cb91-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb91-31"><a href="#cb91-31" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(f3, <span class="at">xlim=</span><span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+
+
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">
+<div id="ref-jackelNoteMultivariateGaussHermite" class="csl-entry" role="doc-biblioentry">
+Jäckel, Peter. n.d. <span>“A Note on Multivariate <span>Gauss-Hermite</span> Quadrature.”</span>
+</div>
+<div id="ref-liuNoteGaussHermite1994" class="csl-entry" role="doc-biblioentry">
+LIU, QING, and DONALD A. PIERCE. 1994. <span>“A Note on <span>Gauss</span>—<span>Hermite</span> Quadrature.”</span> <em>Biometrika</em> 81 (3): 624–29. <a href="https://doi.org/10.1093/biomet/81.3.624">https://doi.org/10.1093/biomet/81.3.624</a>.
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

@@ -1,0 +1,24 @@
+project:
+  type: website
+  
+website:
+  title: "Generalizing the Sum of Single Effects Regression"
+  navbar:
+    right:
+      - about.qmd
+      - icon: github
+        href: https://github.com/
+      - icon: twitter
+        href: https://twitter.com
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+
+# cache exectution to speed up rendering? is this the best option?
+execute:
+  cache: true
+
+# biblgiography available globally, this is just a symlink to my Zotero library
+bibliography: 
+  - library.bib

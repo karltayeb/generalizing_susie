@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.335">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Karl Tayeb">
+<meta name="dcterms.date" content="2024-01-25">
+<meta name="keywords" content="Bayesian variable selection">
+<meta name="description" content="Exposition on the challegnes of variable regression for GLMs">
+
+<title>Generalizing the Sum of Single Effects Regression - One variable at a time is better for inference in SER</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Generalizing the Sum of Single Effects Regression</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html">
+ <span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/"><i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com"><i class="bi bi-twitter" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">One variable at a time is better for inference in SER</h1>
+                  <div>
+        <div class="description">
+          Exposition on the challegnes of variable regression for GLMs
+        </div>
+      </div>
+                </div>
+  </div>
+    
+  <div class="quarto-title-meta-author">
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-heading">Affiliation</div>
+    
+      <div class="quarto-title-meta-contents">
+      Karl Tayeb 
+    </div>
+      <div class="quarto-title-meta-contents">
+          <p class="affiliation">
+              University of Chicago
+            </p>
+        </div>
+      </div>
+
+  <div class="quarto-title-meta">
+
+        
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">January 25, 2024</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
+  <li><a href="#methods" id="toc-methods" class="nav-link" data-scroll-target="#methods">Methods</a>
+  <ul class="collapse">
+  <li><a href="#laplace-approximation" id="toc-laplace-approximation" class="nav-link" data-scroll-target="#laplace-approximation">Laplace approximation</a></li>
+  <li><a href="#iteratively-reweighted-least-squares" id="toc-iteratively-reweighted-least-squares" class="nav-link" data-scroll-target="#iteratively-reweighted-least-squares">Iteratively reweighted least squares</a></li>
+  <li><a href="#variational-approximation" id="toc-variational-approximation" class="nav-link" data-scroll-target="#variational-approximation">Variational approximation</a></li>
+  </ul></li>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a>
+  <ul class="collapse">
+  <li><a href="#one-causal-variable-uncorrelated-x" id="toc-one-causal-variable-uncorrelated-x" class="nav-link" data-scroll-target="#one-causal-variable-uncorrelated-x">One causal variable, uncorrelated X</a></li>
+  <li><a href="#correlated-x" id="toc-correlated-x" class="nav-link" data-scroll-target="#correlated-x">Correlated X</a></li>
+  </ul></li>
+  <li><a href="#discussion" id="toc-discussion" class="nav-link" data-scroll-target="#discussion">Discussion</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<section id="overview" class="level2">
+<h2 class="anchored" data-anchor-id="overview">Overview</h2>
+<p>Variable selection is hard. There is a special case of variable selection that is easy.</p>
+<p>The natural approach for fitting the SER is to fit the univariate regression for each variable separately, and then compare the univariate models to perform inference on which model is most likely.</p>
+<p>IRLS and variational approximations for GLMs generally take a different approach. For each observation we make a local, quadratic approximation to the log likelihood. In the case of backfitting, we take a Taylor approximation about the current estimate of the linear predictor. In the case of variational approximations, we maximize the expected likelihood over a family of variational lower bounds. While the IRLS approach is available to all GLMs, it does not take into account uncertainty in the linear predictors. In contrast, the variational approximations account for uncertainty, but are tailor made for specific observation models, and are less widely applicable.</p>
+<p>In this post we highlight a limitation of both approaches with respect to variable selection problems. We focus on the simple case of a single effect regression (SER) where inference is particularly straight forward. We show that performing approximate inference in the SER we get undesirable behavior: credible sets from our approximate posterior systematically undercover the causal effect variable.</p>
+</section>
+<section id="methods" class="level2">
+<h2 class="anchored" data-anchor-id="methods">Methods</h2>
+<div class="cell" data-hash="index_cache/html/helpers_2acad539cd5aed1be94856476caffd09">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>sigmoid <span class="ot">&lt;-</span> <span class="cf">function</span>(x){<span class="dv">1</span> <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>x))}</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>logit <span class="ot">&lt;-</span> <span class="cf">function</span>(p){<span class="fu">log</span>(p) <span class="sc">-</span> <span class="fu">log</span>(<span class="dv">1</span><span class="sc">-</span>p)}</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>logsumexp <span class="ot">&lt;-</span> <span class="cf">function</span>(x){</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  c <span class="ot">&lt;-</span> <span class="fu">max</span>(x)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(c <span class="sc">+</span> <span class="fu">log</span>(<span class="fu">sum</span>(<span class="fu">exp</span>(x <span class="sc">-</span> c))))</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>compute_cs <span class="ot">&lt;-</span> <span class="cf">function</span>(alpha, <span class="at">target_coverage =</span> <span class="fl">0.95</span>){</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  idx <span class="ot">&lt;-</span> <span class="fu">order</span>(alpha, <span class="at">decreasing =</span> T)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  coverage <span class="ot">&lt;-</span> <span class="fu">cumsum</span>(alpha[idx])</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  size <span class="ot">&lt;-</span> <span class="fu">which</span>(coverage <span class="sc">&gt;=</span> target_coverage)[<span class="dv">1</span>]</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  cs <span class="ot">&lt;-</span> idx[<span class="dv">1</span><span class="sc">:</span>size]</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  alpha <span class="ot">&lt;-</span> alpha[cs]</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  coverage <span class="ot">&lt;-</span> <span class="fu">sum</span>(alpha)</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">cs=</span>cs, <span class="at">alpha=</span>alpha, <span class="at">size=</span>size, <span class="at">coverage =</span> coverage, <span class="at">target_coverage =</span> target_coverage))</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<section id="laplace-approximation" class="level3">
+<h3 class="anchored" data-anchor-id="laplace-approximation">Laplace approximation</h3>
+<p>The GLM-SER is simply a GLM with an SER prior on the effect vector. Estimating the SER with a fixed prior variance is similarly straightforward. Once we condition on which variable is included, the problem reduces to <span class="math inline">\(p\)</span> separate regression problems. The algorithm is simple: fit <span class="math inline">\(p\)</span> seperate univariate regressions to get the posterior <span class="math inline">\(p(b | \gamma =j, {\bf x}_j, {\bf y})\)</span> and normalize the BFs to get <span class="math inline">\(p(\gamma)\)</span>.</p>
+<p>In this post the method we call “Laplace approximation” approximates the posteriore <span class="math inline">\(p(b | \gamma, y, X)\)</span> using the Laplace approximation. The key feature that distinguishes this approach from the other approaches presented here is that each variable is treated separately. The fact that we use a Laplace approximation for each variable, rather than e.g.&nbsp;a variational approximation is of little importance, we assume that the approximation is close to exact.</p>
+<div class="cell" data-hash="index_cache/html/ser-laplace_d35e66aadfc8bb470386501cd95a4006">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#' Fit logistic SER</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>logistic_ser_laplace <span class="ot">&lt;-</span> <span class="cf">function</span>(y, X, prior_variance, <span class="at">maxiter=</span><span class="dv">100</span>, <span class="at">tol=</span><span class="fl">1e-5</span>){</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  f <span class="ot">&lt;-</span> <span class="cf">function</span>(i){</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    x <span class="ot">&lt;-</span> X[, i]</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">glm</span>(y <span class="sc">~</span> x, <span class="at">family=</span><span class="st">'binomial'</span>))</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">ncol</span>(X)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  fits <span class="ot">&lt;-</span> purrr<span class="sc">::</span><span class="fu">map</span>(<span class="dv">1</span><span class="sc">:</span>p, f)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  betahat <span class="ot">&lt;-</span> purrr<span class="sc">::</span><span class="fu">map_dbl</span>(fits, <span class="sc">~</span><span class="fu">coef</span>(.x)[<span class="dv">2</span>])</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  intercept <span class="ot">&lt;-</span> purrr<span class="sc">::</span><span class="fu">map_dbl</span>(fits, <span class="sc">~</span><span class="fu">coef</span>(.x)[<span class="dv">1</span>])</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  sehat <span class="ot">&lt;-</span> purrr<span class="sc">::</span><span class="fu">map_dbl</span>(fits, <span class="sc">~</span><span class="fu">summary</span>(.x)<span class="sc">$</span>coef[<span class="dv">2</span>, <span class="dv">2</span>]) <span class="co"># note we actually just want the sqrt(-1/H[2,2]) where H is the hessian at mle</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  ll <span class="ot">&lt;-</span> purrr<span class="sc">::</span><span class="fu">map_dbl</span>(fits, <span class="sc">~-</span><span class="fl">0.5</span> <span class="sc">*</span> .x<span class="sc">$</span>deviance)</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  ll0 <span class="ot">&lt;-</span> purrr<span class="sc">::</span><span class="fu">map_dbl</span>(fits, <span class="sc">~-</span><span class="fl">0.5</span> <span class="sc">*</span> .x<span class="sc">$</span>null.deviance)</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  tau0 <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">/</span>prior_variance</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  tau <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">/</span>sehat<span class="sc">**</span><span class="dv">2</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  mu <span class="ot">&lt;-</span> tau<span class="sc">/</span>(tau <span class="sc">+</span> tau0) <span class="sc">*</span> betahat</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  var <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span>(tau <span class="sc">+</span> tau0)</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  lbf <span class="ot">&lt;-</span> (ll <span class="sc">-</span> ll0) <span class="sc">+</span> <span class="fl">0.5</span> <span class="sc">*</span> <span class="fu">log</span>(tau0<span class="sc">/</span>(tau <span class="sc">+</span> tau0)) <span class="sc">-</span> <span class="fl">0.5</span> <span class="sc">*</span> (<span class="dv">1</span><span class="sc">/</span>tau <span class="sc">+</span> <span class="dv">1</span><span class="sc">/</span>tau0) <span class="sc">*</span> betahat<span class="sc">**</span><span class="dv">2</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  alpha <span class="ot">&lt;-</span> <span class="fu">exp</span>(lbf <span class="sc">-</span> <span class="fu">logsumexp</span>(lbf))</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  psi <span class="ot">&lt;-</span> (X <span class="sc">%*%</span> (alpha <span class="sc">*</span> mu))[, <span class="dv">1</span>] <span class="sc">+</span> <span class="fu">sum</span>(alpha <span class="sc">*</span> intercept)</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  cs <span class="ot">&lt;-</span> <span class="fu">compute_cs</span>(alpha)</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">mu =</span> mu, <span class="at">alpha =</span> alpha, <span class="at">lbf =</span> lbf, <span class="at">prior_variance=</span>prior_variance, <span class="at">intercept=</span>intercept, <span class="at">psi=</span>psi, <span class="at">cs=</span>cs))</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="iteratively-reweighted-least-squares" class="level3">
+<h3 class="anchored" data-anchor-id="iteratively-reweighted-least-squares">Iteratively reweighted least squares</h3>
+<p>GLMs are often fit via Newton’s method. When we run Newton’s method with a fixed stepsize of <span class="math inline">\(1\)</span>, the Newton updates can be rewritten as a weighted least squares problem. You will often hear that GLMs are fit by <em>iteratively reweighted least squares</em> (IRLS).</p>
+<p><span class="math display">\[
+\begin{align}
+\beta^{+} = \beta - \nabla^2 l(\beta)^{-1} \nabla l(\beta)
+\end{align}
+\]</span></p>
+<p>This update is easily derived by taking a 2nd order Taylor expansion of <span class="math inline">\(l\)</span> about <span class="math inline">\(\beta\)</span>, and optimizing the resulting quadratic approximation.</p>
+<p>If we use the canonical link function, the GLM has that the <em>natural parameter</em> is a linear function of our covariates <span class="math inline">\(X\)</span>, <span class="math inline">\(\eta_i = {\bf x}_i^T \beta\)</span> and <span class="math inline">\(\log p(y_i | \beta, {\bf x}_i) = y \eta - A(\eta) + \phi(y)\)</span>. E.g. for logistic regression <span class="math inline">\(A(\eta) = \log(1 + \exp(\eta))\)</span>. Exponential families have the convenient property that <span class="math inline">\(A^{'}(\eta) = \mathbb E_\eta[Y] = \mu\)</span>. We can compute the gradient and Hessian:</p>
+<p><span class="math display">\[
+\begin{align}
+\nabla_\beta l_i(\beta) &amp;= y_i {\bf x}_i - A^{'}(\eta_i){\bf x}_i = (y_i - \mu_i) {\bf x}_i, \\
+\nabla_\beta l(\beta) &amp;= X^T ({\bf y} - \mu)
+\end{align}
+\]</span></p>
+<p><span class="math display">\[
+\begin{align}
+\nabla^2_\beta l_i(\beta) &amp;= - A^{''}(\eta_i) {\bf x}_i {\bf x}_i^T, \\
+\nabla^2_\beta l(\beta) &amp;= - X^T W X
+\end{align}
+\]</span></p>
+<p>Where <span class="math inline">\(W = \text{diag}((A^{''}(\eta_i))_{i=1}^n)\)</span></p>
+<p>Now we will rewrite our newton update rule:</p>
+<p><span class="math display">\[
+\begin{align}
+\beta^{+} &amp;= \beta - \nabla^2 l(\beta)^{-1} \nabla l(\beta) \\
+&amp;= \beta + (X^T W X)^{-1} X^T ({\bf y} - \mu) \\
+&amp;= \beta + (X^T W X)^{-1} X^T ({\bf y} - \mu) \\
+&amp;= (X^T W X)^{-1} X^T W X \beta + (X^T W X)^{-1} X^T W W^{-1} ({\bf y} - \mu) \\
+&amp;= (X^T W X)^{-1} X^T W (X \beta +  W^{-1} ({\bf y} - \mu)) \\
+&amp;= (X^T W X)^{-1} X^T W (\eta +  W^{-1} ({\bf y} - \mu)) \\
+\end{align}
+\]</span></p>
+<p>So we have shown that the Newton update <span class="math inline">\(\beta^+\)</span> is the solution to the <em>weighted least squares</em> problem with adjusted data <span class="math inline">\({\bf z} = \eta + W^{-1}(\bf y - \mu)\)</span> and weights <span class="math inline">\(W\)</span>. <em>Iteratively reweighted least squares</em> proceeds by iteratively computing weights and adjusted data and solving the WLS problem. It is plain to see that this is just perform Newton’s method with a step size of <span class="math inline">\(1\)</span>.</p>
+<div class="cell" data-hash="index_cache/html/irls-code_53ac7cd3c9438ba32713d776dd675206">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#' form adjusted data for logistic regression</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>make_adjusted_data <span class="ot">&lt;-</span> <span class="cf">function</span>(y, psi){</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  mu <span class="ot">&lt;-</span> <span class="fu">sigmoid</span>(psi)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  var <span class="ot">&lt;-</span> mu <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> mu)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  z <span class="ot">=</span> psi <span class="sc">+</span> ((y <span class="sc">-</span> mu) <span class="sc">/</span> var)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">z =</span> z, <span class="at">var =</span> var))</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co">#' WLS just to check</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>wls <span class="ot">&lt;-</span> <span class="cf">function</span>(y, x, weights){</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="fu">length</span>(x)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  X <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="fu">rep</span>(<span class="dv">1</span>, n), x)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  WX <span class="ot">&lt;-</span> <span class="fu">cbind</span>(weights, weights<span class="sc">*</span>x)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  tmp <span class="ot">&lt;-</span> (<span class="fu">t</span>(X) <span class="sc">%*%</span> (y <span class="sc">*</span> weights))[, <span class="dv">1</span>]</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">solve</span>(<span class="fu">t</span>(X) <span class="sc">%*%</span> WX, tmp)</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="co">#' WLS just to check</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>compute_newton_direction <span class="ot">&lt;-</span> <span class="cf">function</span>(y, x, psi){</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  mu <span class="ot">&lt;-</span> <span class="fu">sigmoid</span>(psi)</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  var <span class="ot">&lt;-</span> mu <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> mu)</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  weights <span class="ot">&lt;-</span> var</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  z <span class="ot">&lt;-</span> (y <span class="sc">-</span> mu)</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="fu">length</span>(x)</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>  X <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="fu">rep</span>(<span class="dv">1</span>, n), x)</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>  WX <span class="ot">&lt;-</span> <span class="fu">cbind</span>(weights, weights<span class="sc">*</span>x)</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>  nd <span class="ot">&lt;-</span> <span class="fu">solve</span>(<span class="fu">t</span>(X) <span class="sc">%*%</span> WX, <span class="fu">t</span>(X) <span class="sc">%*%</span> z)[,<span class="dv">1</span>]</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(nd)</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-hash="index_cache/html/newton_v_wls_92ebb45fb5e1421c9a7a02b1a067d478">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n<span class="sc">*</span>p), <span class="at">nrow=</span>n)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> X[, <span class="dv">1</span>]</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>logodds <span class="ot">&lt;-</span> <span class="sc">-</span><span class="dv">2</span> <span class="sc">+</span> x</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(logodds <span class="sc">+</span> <span class="fu">rlogis</span>(n) <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>beta <span class="ot">&lt;-</span> <span class="fu">coef</span>(<span class="fu">glm</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="dv">1</span>, <span class="at">family=</span><span class="st">'binomial'</span>))</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>psi <span class="ot">&lt;-</span> <span class="fu">predict</span>(<span class="fu">glm</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="dv">1</span>, <span class="at">family=</span><span class="st">'binomial'</span>))</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>adjusted_data <span class="ot">&lt;-</span> <span class="fu">make_adjusted_data</span>(y, psi)</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co"># newton update and WLS agree</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="fu">with</span>(adjusted_data, <span class="fu">wls</span>(z, x, var))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>  weights           
+-1.928730  1.026304 </code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>beta <span class="sc">-</span> <span class="fu">compute_newton_direction</span>(y, x, psi)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>(Intercept)           x 
+  -1.928730    1.026304 </code></pre>
+</div>
+</div>
+<div class="cell" data-hash="index_cache/html/irls-example_d2469b5613a5c8d7855e986fc8ea8280">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n<span class="sc">*</span>p), <span class="at">nrow=</span>n)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> X[, <span class="dv">1</span>]</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>logodds <span class="ot">&lt;-</span> <span class="sc">-</span><span class="dv">2</span> <span class="sc">+</span> x</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(logodds <span class="sc">+</span> <span class="fu">rlogis</span>(n) <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co"># fit via glm</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(<span class="fu">glm</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="dv">1</span> , <span class="at">family=</span><span class="st">'binomial'</span>))<span class="sc">$</span>coef</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>              Estimate Std. Error    z value     Pr(&gt;|z|)
+(Intercept) -1.8876589  0.1050184 -17.974549 3.083635e-72
+x            0.9450638  0.1020115   9.264292 1.963764e-20</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># WLS using predictions at MLE-- </span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co"># results of WLS should agree with GLM, but there is a discrepency</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>psi <span class="ot">&lt;-</span> <span class="fu">predict</span>(<span class="fu">glm</span>(y <span class="sc">~</span> x <span class="sc">+</span> <span class="dv">1</span>, <span class="at">family=</span><span class="st">'binomial'</span>))</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>adjusted_data <span class="ot">&lt;-</span> <span class="fu">make_adjusted_data</span>(y, psi)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co"># wls implementation is correct AND agrees with glm</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="fu">with</span>(adjusted_data, <span class="fu">summary</span>(<span class="fu">lm</span>(z <span class="sc">~</span> x <span class="sc">+</span> <span class="dv">1</span>, <span class="at">weights=</span>var))<span class="sc">$</span>coef)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>              Estimate Std. Error    t value     Pr(&gt;|t|)
+(Intercept) -1.8876589  0.1039571 -18.158055 6.922544e-64
+x            0.9450638  0.1009805   9.358875 5.167002e-20</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">with</span>(adjusted_data, <span class="fu">wls</span>(z, x, var))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>   weights            
+-1.8876589  0.9450638 </code></pre>
+</div>
+</div>
+<div class="cell" data-hash="index_cache/html/ser-code_c38f079affb04b9a5c63f21718e79065">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#' Fit weighted SER</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>weighted_ser <span class="ot">&lt;-</span> <span class="cf">function</span>(y, X, weights, <span class="at">prior_variance=</span><span class="dv">1</span>){</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">ncol</span>(X)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  f <span class="ot">&lt;-</span> <span class="cf">function</span>(i){</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    yaug <span class="ot">&lt;-</span> <span class="fu">c</span>(y, <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>))</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    xaug <span class="ot">&lt;-</span> <span class="fu">c</span>(X[,i], <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>))</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    weightsaug <span class="ot">&lt;-</span> <span class="fu">c</span>(weights, <span class="fu">rep</span>(<span class="fl">0.25</span>, <span class="dv">4</span>))</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">lm</span>(yaug <span class="sc">~</span> xaug, <span class="at">weights =</span> weightsaug))</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  fits <span class="ot">&lt;-</span> purrr<span class="sc">::</span><span class="fu">map</span>(<span class="dv">1</span><span class="sc">:</span>p, <span class="sc">~</span><span class="fu">f</span>(.x))</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  intercepts <span class="ot">&lt;-</span> purrr<span class="sc">::</span><span class="fu">map_dbl</span>(<span class="dv">1</span><span class="sc">:</span>p, <span class="sc">~</span>fits[[.x]]<span class="sc">$</span>coef[<span class="dv">1</span>])</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>  means <span class="ot">&lt;-</span> purrr<span class="sc">::</span><span class="fu">map_dbl</span>(<span class="dv">1</span><span class="sc">:</span>p, <span class="sc">~</span>fits[[.x]]<span class="sc">$</span>coef[<span class="dv">2</span>])</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>  std <span class="ot">&lt;-</span> purrr<span class="sc">::</span><span class="fu">map_dbl</span>(<span class="dv">1</span><span class="sc">:</span>p, <span class="sc">~</span><span class="fu">summary</span>(fits[[.x]])<span class="sc">$</span>coef[<span class="dv">2</span>, <span class="dv">2</span>])</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>  tau <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">/</span>(std<span class="sc">**</span><span class="dv">2</span>)</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>  tau0 <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">/</span>prior_variance</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>  mu <span class="ot">&lt;-</span> tau<span class="sc">/</span>(tau <span class="sc">+</span> tau0) <span class="sc">*</span> means</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>  var <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">/</span>(tau <span class="sc">+</span> tau0)</span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>  lbf <span class="ot">&lt;-</span> <span class="fu">dnorm</span>(means, <span class="at">sd =</span> <span class="fu">sqrt</span>(std<span class="sc">**</span><span class="dv">2</span> <span class="sc">+</span> prior_variance), <span class="at">log=</span>T) <span class="sc">-</span> <span class="fu">dnorm</span>(means, <span class="at">sd =</span> std, <span class="at">log=</span>T)</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>  alpha <span class="ot">&lt;-</span> <span class="fu">exp</span>(lbf <span class="sc">-</span> <span class="fu">log</span>(<span class="fu">sum</span>(<span class="fu">exp</span>(lbf <span class="sc">-</span> <span class="fu">max</span>(lbf)))) <span class="sc">-</span> <span class="fu">max</span>(lbf))</span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>  psi <span class="ot">&lt;-</span> <span class="fu">sum</span>(intercepts <span class="sc">*</span> alpha) <span class="sc">+</span> (X <span class="sc">%*%</span> (mu <span class="sc">*</span> alpha))[, <span class="dv">1</span>]</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>  cs <span class="ot">&lt;-</span> <span class="fu">compute_cs</span>(alpha)</span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">mu =</span> mu, <span class="at">alpha =</span> alpha, <span class="at">lbf =</span> lbf, <span class="at">prior_variance=</span>prior_variance, <span class="at">intercept=</span>intercepts, <span class="at">psi=</span>psi, <span class="at">cs=</span>cs))</span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a><span class="co">#' Fit logistic SER, IRLS inspired approach</span></span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>logistic_ser_irls <span class="ot">&lt;-</span> <span class="cf">function</span>(y, X, prior_variance, <span class="at">maxiter=</span><span class="dv">100</span>, <span class="at">tol=</span><span class="fl">1e-5</span>){</span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>  psi <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="fu">logit</span>(<span class="fu">mean</span>(y)), <span class="fu">length</span>(y))</span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>  ll <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">'numeric'</span>, <span class="at">length =</span> maxiter)</span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>maxiter){</span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>    adjusted_data <span class="ot">&lt;-</span> <span class="fu">make_adjusted_data</span>(y, psi)</span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>    serfit <span class="ot">&lt;-</span> <span class="fu">with</span>(adjusted_data, <span class="fu">weighted_ser</span>(z, X, var, prior_variance))</span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a>    psi <span class="ot">&lt;-</span> serfit<span class="sc">$</span>psi</span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>    ll[i] <span class="ot">&lt;-</span> <span class="fu">sum</span>(y<span class="sc">*</span>psi <span class="sc">-</span> <span class="fu">log</span>(<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(psi)))</span>
+<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(i <span class="sc">&gt;</span> <span class="dv">1</span>){</span>
+<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="fu">abs</span>(ll[i] <span class="sc">-</span> ll[i<span class="dv">-1</span>]) <span class="sc">&lt;</span> tol){</span>
+<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span></span>
+<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a>  ll <span class="ot">&lt;-</span> <span class="fu">head</span>(ll, i)</span>
+<span id="cb14-45"><a href="#cb14-45" aria-hidden="true" tabindex="-1"></a>  serfit<span class="sc">$</span>ll <span class="ot">&lt;-</span> ll</span>
+<span id="cb14-46"><a href="#cb14-46" aria-hidden="true" tabindex="-1"></a>  serfit<span class="sc">$</span>niter <span class="ot">&lt;-</span> i</span>
+<span id="cb14-47"><a href="#cb14-47" aria-hidden="true" tabindex="-1"></a>  serfit<span class="sc">$</span>maxiter <span class="ot">&lt;-</span> maxiter</span>
+<span id="cb14-48"><a href="#cb14-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(serfit)</span>
+<span id="cb14-49"><a href="#cb14-49" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="variational-approximation" class="level3">
+<h3 class="anchored" data-anchor-id="variational-approximation">Variational approximation</h3>
+<p>A key challenge in Bayesian logistic regression is integrating over a non-conjugate prior. This is commonly dealt with via variational techniques. Jaakkola and Jordan propose a quadratic variational lower bound <span class="citation" data-cites="jaakkolaVariationalApproachBayesian">(<a href="#ref-jaakkolaVariationalApproachBayesian" role="doc-biblioref">Jaakkola and Jordan, n.d.</a>)</span> for the logistic log likelihood. For each observation, a variational parameter is optimized to maximize the approximate marginal likelihood. This variational approach corresponds to Polya-Gamma augmentation <span class="citation" data-cites="polsonBayesianInferenceLogistic2013a">(<a href="#ref-polsonBayesianInferenceLogistic2013a" role="doc-biblioref">Polson, Scott, and Windle 2013</a>)</span>. From this perspective, the variational parameter gives the variational approximation of the posterior of a latent variable which renders the model conditionally conjugate. This approach has the been extended to the class of super-Gaussian models <span class="citation" data-cites="wenzelEfficientGaussianProcess2018">(<a href="#ref-wenzelEfficientGaussianProcess2018" role="doc-biblioref">Wenzel et al. 2018</a>)</span>.</p>
+<div class="cell" data-hash="index_cache/html/ser-vb_0edff5f961f90ae67035ff35e8fbfbf3">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">#' polya Gamma Mean</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>pg_mean <span class="ot">&lt;-</span> <span class="cf">function</span>(b, c) {</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  mu <span class="ot">&lt;-</span> Matrix<span class="sc">::</span><span class="fu">drop</span>(<span class="fl">0.5</span> <span class="sc">*</span> b <span class="sc">/</span> c <span class="sc">*</span> <span class="fu">tanh</span>(c <span class="sc">/</span> <span class="dv">2</span>))</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># deal with case of c = 0 mean is b/4</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  idx <span class="ot">&lt;-</span> <span class="fu">is.na</span>(mu) <span class="co"># does indexing work form matrix entries?</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  mu[idx] <span class="ot">&lt;-</span> b[idx] <span class="sc">/</span> <span class="dv">4</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(mu)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="co">#' KL Divergence between two normal distributions</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>normal_kl <span class="ot">&lt;-</span> <span class="cf">function</span>(mu, var, <span class="at">mu0 =</span> <span class="fl">0.</span>, <span class="at">var0 =</span> <span class="fl">1.</span>) {</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  kl <span class="ot">&lt;-</span> <span class="fl">0.5</span> <span class="sc">*</span> (<span class="fu">log</span>(var0) <span class="sc">-</span> <span class="fu">log</span>(var) <span class="sc">+</span> var <span class="sc">/</span> var0 <span class="sc">+</span> (mu <span class="sc">-</span> mu0)<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> var0 <span class="sc">-</span> <span class="dv">1</span>)</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(kl)</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="co">#' KL Divergence between two categorical distributions</span></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>categorical_kl <span class="ot">&lt;-</span> <span class="cf">function</span>(alpha, pi) {</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>  idx <span class="ot">&lt;-</span> alpha <span class="sc">&gt;</span> <span class="dv">1</span> <span class="sc">/</span> (<span class="fu">length</span>(alpha) <span class="sc">*</span> <span class="fl">1e3</span>)</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sum</span>((alpha <span class="sc">*</span> (<span class="fu">log</span>(alpha) <span class="sc">-</span> <span class="fu">log</span>(pi))), <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a><span class="co">#' KL Divergence of SER posterior and SER prior</span></span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>compute_ser_kl <span class="ot">&lt;-</span> <span class="cf">function</span>(alpha, pi, mu, var, mu0, var0) {</span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>  kl <span class="ot">&lt;-</span> <span class="fu">categorical_kl</span>(alpha, pi)</span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>  kl <span class="ot">&lt;-</span> kl <span class="sc">+</span> <span class="fu">sum</span>(alpha <span class="sc">*</span> <span class="fu">normal_kl</span>(</span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>    mu, var, mu0, var0</span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>  ))</span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(kl)</span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a><span class="co">#' Elbo for logistic SER with JJ approximation</span></span>
+<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a>compute_elbo <span class="ot">&lt;-</span> <span class="cf">function</span>(y, X, xi, mu, var, delta, alpha, prior_variance, pi){</span>
+<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a>  <span class="co"># jj bound</span></span>
+<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a>  kappa <span class="ot">&lt;-</span> y <span class="sc">-</span> <span class="fl">0.5</span></span>
+<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a>  b <span class="ot">&lt;-</span> mu <span class="sc">*</span> alpha</span>
+<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a>  psi <span class="ot">&lt;-</span> Matrix<span class="sc">::</span><span class="fu">drop</span>(X <span class="sc">%*%</span> mu) <span class="sc">+</span> delta</span>
+<span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a>  bound <span class="ot">&lt;-</span> <span class="fu">log</span>(<span class="fu">sigmoid</span>(xi)) <span class="sc">+</span> (kappa <span class="sc">*</span> psi) <span class="sc">-</span> (<span class="fl">0.5</span> <span class="sc">*</span> xi)</span>
+<span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a>  <span class="co"># KL[q(b) || p (b)]</span></span>
+<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a>  kl <span class="ot">&lt;-</span> <span class="fu">compute_ser_kl</span>(alpha, pi, mu, var, <span class="dv">0</span>, prior_variance)</span>
+<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">sum</span>(bound) <span class="sc">-</span> kl)</span>
+<span id="cb15-43"><a href="#cb15-43" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb15-44"><a href="#cb15-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-45"><a href="#cb15-45" aria-hidden="true" tabindex="-1"></a>is_monotone <span class="ot">&lt;-</span> <span class="cf">function</span>(x){</span>
+<span id="cb15-46"><a href="#cb15-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">all</span>(<span class="fu">tail</span>(x, <span class="sc">-</span><span class="dv">1</span>) <span class="sc">-</span> <span class="fu">head</span>(x, <span class="sc">-</span><span class="dv">1</span>) <span class="sc">&gt;=</span> <span class="dv">0</span>))</span>
+<span id="cb15-47"><a href="#cb15-47" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb15-48"><a href="#cb15-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-49"><a href="#cb15-49" aria-hidden="true" tabindex="-1"></a>logistic_ser_vb <span class="ot">&lt;-</span> <span class="cf">function</span>(y, X, <span class="at">prior_variance=</span><span class="fl">1.0</span>, <span class="at">maxiter=</span><span class="dv">100</span>, <span class="at">tol=</span><span class="fl">1e-5</span>){</span>
+<span id="cb15-50"><a href="#cb15-50" aria-hidden="true" tabindex="-1"></a>  <span class="co"># initialize variational params</span></span>
+<span id="cb15-51"><a href="#cb15-51" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="fu">length</span>(y)</span>
+<span id="cb15-52"><a href="#cb15-52" aria-hidden="true" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">ncol</span>(X)</span>
+<span id="cb15-53"><a href="#cb15-53" aria-hidden="true" tabindex="-1"></a>  xi <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="fl">0.01</span>, n)</span>
+<span id="cb15-54"><a href="#cb15-54" aria-hidden="true" tabindex="-1"></a>  mu <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, p)</span>
+<span id="cb15-55"><a href="#cb15-55" aria-hidden="true" tabindex="-1"></a>  var <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span>, p)</span>
+<span id="cb15-56"><a href="#cb15-56" aria-hidden="true" tabindex="-1"></a>  alpha <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">/</span>p, p)</span>
+<span id="cb15-57"><a href="#cb15-57" aria-hidden="true" tabindex="-1"></a>  delta <span class="ot">&lt;-</span> <span class="fu">logit</span>(<span class="fu">mean</span>(y))</span>
+<span id="cb15-58"><a href="#cb15-58" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb15-59"><a href="#cb15-59" aria-hidden="true" tabindex="-1"></a>  <span class="co"># fixed</span></span>
+<span id="cb15-60"><a href="#cb15-60" aria-hidden="true" tabindex="-1"></a>  kappa <span class="ot">&lt;-</span> (y <span class="sc">-</span> <span class="fl">0.5</span>)</span>
+<span id="cb15-61"><a href="#cb15-61" aria-hidden="true" tabindex="-1"></a>  tau0 <span class="ot">&lt;-</span> <span class="fl">1.</span> <span class="sc">/</span> prior_variance</span>
+<span id="cb15-62"><a href="#cb15-62" aria-hidden="true" tabindex="-1"></a>  X2 <span class="ot">&lt;-</span> X<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb15-63"><a href="#cb15-63" aria-hidden="true" tabindex="-1"></a>  Z <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rep</span>(<span class="dv">1</span>, n), <span class="at">nrow=</span>n)</span>
+<span id="cb15-64"><a href="#cb15-64" aria-hidden="true" tabindex="-1"></a>  pi <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">/</span>p, p)</span>
+<span id="cb15-65"><a href="#cb15-65" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb15-66"><a href="#cb15-66" aria-hidden="true" tabindex="-1"></a>  <span class="co"># iter</span></span>
+<span id="cb15-67"><a href="#cb15-67" aria-hidden="true" tabindex="-1"></a>  elbo <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, maxiter)</span>
+<span id="cb15-68"><a href="#cb15-68" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(iter <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>maxiter){</span>
+<span id="cb15-69"><a href="#cb15-69" aria-hidden="true" tabindex="-1"></a>    omega <span class="ot">&lt;-</span> <span class="fu">pg_mean</span>(<span class="dv">1</span>, xi)</span>
+<span id="cb15-70"><a href="#cb15-70" aria-hidden="true" tabindex="-1"></a>    tmp <span class="ot">&lt;-</span> kappa <span class="sc">-</span> omega <span class="sc">*</span> delta</span>
+<span id="cb15-71"><a href="#cb15-71" aria-hidden="true" tabindex="-1"></a>    nu <span class="ot">&lt;-</span> Matrix<span class="sc">::</span><span class="fu">drop</span>(tmp <span class="sc">%*%</span> X)</span>
+<span id="cb15-72"><a href="#cb15-72" aria-hidden="true" tabindex="-1"></a>    tau <span class="ot">&lt;-</span> Matrix<span class="sc">::</span><span class="fu">drop</span>(omega <span class="sc">%*%</span> X2)</span>
+<span id="cb15-73"><a href="#cb15-73" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-74"><a href="#cb15-74" aria-hidden="true" tabindex="-1"></a>    mu <span class="ot">=</span> nu <span class="sc">/</span> tau</span>
+<span id="cb15-75"><a href="#cb15-75" aria-hidden="true" tabindex="-1"></a>    var <span class="ot">=</span> <span class="dv">1</span> <span class="sc">/</span> tau</span>
+<span id="cb15-76"><a href="#cb15-76" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-77"><a href="#cb15-77" aria-hidden="true" tabindex="-1"></a>    logits <span class="ot">&lt;-</span> <span class="fu">log</span>(pi) <span class="sc">-</span> <span class="fl">0.5</span> <span class="sc">*</span> <span class="fu">log</span>(tau) <span class="sc">+</span> <span class="fl">0.5</span> <span class="sc">*</span> nu<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> tau</span>
+<span id="cb15-78"><a href="#cb15-78" aria-hidden="true" tabindex="-1"></a>    logits <span class="ot">&lt;-</span> logits <span class="sc">-</span> <span class="fu">logsumexp</span>(logits)</span>
+<span id="cb15-79"><a href="#cb15-79" aria-hidden="true" tabindex="-1"></a>    alpha <span class="ot">&lt;-</span> <span class="fu">exp</span>(logits)</span>
+<span id="cb15-80"><a href="#cb15-80" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-81"><a href="#cb15-81" aria-hidden="true" tabindex="-1"></a>    <span class="co">#intercept </span></span>
+<span id="cb15-82"><a href="#cb15-82" aria-hidden="true" tabindex="-1"></a>    b <span class="ot">&lt;-</span> alpha <span class="sc">*</span> mu</span>
+<span id="cb15-83"><a href="#cb15-83" aria-hidden="true" tabindex="-1"></a>    Xb <span class="ot">&lt;-</span>  Matrix<span class="sc">::</span><span class="fu">drop</span>(X <span class="sc">%*%</span> b)</span>
+<span id="cb15-84"><a href="#cb15-84" aria-hidden="true" tabindex="-1"></a>    delta <span class="ot">&lt;-</span> Matrix<span class="sc">::</span><span class="fu">drop</span>(Matrix<span class="sc">::</span><span class="fu">solve</span>((omega <span class="sc">*</span> <span class="fu">t</span>(Z)) <span class="sc">%*%</span> Z, <span class="fu">t</span>(Z) <span class="sc">%*%</span> (kappa <span class="sc">-</span> omega <span class="sc">*</span> Xb)))</span>
+<span id="cb15-85"><a href="#cb15-85" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-86"><a href="#cb15-86" aria-hidden="true" tabindex="-1"></a>    <span class="co"># compute psi2</span></span>
+<span id="cb15-87"><a href="#cb15-87" aria-hidden="true" tabindex="-1"></a>    b2 <span class="ot">&lt;-</span> alpha <span class="sc">*</span> (mu<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> var)</span>
+<span id="cb15-88"><a href="#cb15-88" aria-hidden="true" tabindex="-1"></a>    Xb2 <span class="ot">&lt;-</span> Matrix<span class="sc">::</span><span class="fu">drop</span>((X2) <span class="sc">%*%</span> b2)</span>
+<span id="cb15-89"><a href="#cb15-89" aria-hidden="true" tabindex="-1"></a>    VXb <span class="ot">&lt;-</span> Xb2 <span class="sc">-</span> Xb<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb15-90"><a href="#cb15-90" aria-hidden="true" tabindex="-1"></a>    psi2 <span class="ot">&lt;-</span> (Xb <span class="sc">+</span> delta)<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> VXb</span>
+<span id="cb15-91"><a href="#cb15-91" aria-hidden="true" tabindex="-1"></a>    <span class="co">#psi2 &lt;- Xb2 + (2 * Xb * delta) + delta^2</span></span>
+<span id="cb15-92"><a href="#cb15-92" aria-hidden="true" tabindex="-1"></a>    xi <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">abs</span>(psi2))</span>
+<span id="cb15-93"><a href="#cb15-93" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-94"><a href="#cb15-94" aria-hidden="true" tabindex="-1"></a>    elbo[iter] <span class="ot">&lt;-</span> <span class="fu">compute_elbo</span>(y, X, xi, mu, var, delta, alpha, prior_variance, pi)</span>
+<span id="cb15-95"><a href="#cb15-95" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-96"><a href="#cb15-96" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (iter <span class="sc">&gt;</span> <span class="dv">2</span>){</span>
+<span id="cb15-97"><a href="#cb15-97" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="fu">diff</span>(<span class="fu">tail</span>(<span class="fu">head</span>(elbo, iter), <span class="dv">2</span>)) <span class="sc">&lt;</span> tol){</span>
+<span id="cb15-98"><a href="#cb15-98" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span></span>
+<span id="cb15-99"><a href="#cb15-99" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb15-100"><a href="#cb15-100" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb15-101"><a href="#cb15-101" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb15-102"><a href="#cb15-102" aria-hidden="true" tabindex="-1"></a>  cs <span class="ot">&lt;-</span> <span class="fu">compute_cs</span>(alpha)</span>
+<span id="cb15-103"><a href="#cb15-103" aria-hidden="true" tabindex="-1"></a>  psi <span class="ot">&lt;-</span> Matrix<span class="sc">::</span><span class="fu">drop</span>(X <span class="sc">%*%</span> b) <span class="sc">+</span> delta</span>
+<span id="cb15-104"><a href="#cb15-104" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">mu =</span> mu, <span class="at">alpha =</span> alpha, <span class="at">xi=</span>xi, <span class="at">lbf =</span> <span class="dv">0</span>, <span class="at">prior_variance=</span>prior_variance, <span class="at">intercept=</span>delta, <span class="at">psi=</span>psi, <span class="at">cs=</span>cs, <span class="at">elbo=</span>elbo, <span class="at">iter=</span>iter))</span>
+<span id="cb15-105"><a href="#cb15-105" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+</section>
+<section id="examples" class="level2">
+<h2 class="anchored" data-anchor-id="examples">Examples</h2>
+<section id="one-causal-variable-uncorrelated-x" class="level3">
+<h3 class="anchored" data-anchor-id="one-causal-variable-uncorrelated-x">One causal variable, uncorrelated X</h3>
+<div class="cell" data-hash="index_cache/html/ser-fit_cbd6a03468c83155e778efaadd8a4520">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">3</span>) <span class="co"># alternating ll</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">4</span>) <span class="co"># good</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">11</span>) <span class="co"># decreasing ll</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">12</span>) <span class="co"># decreasing ll</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n<span class="sc">*</span>p), <span class="at">nrow=</span>n)</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> X[, <span class="dv">1</span>]</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>logodds <span class="ot">&lt;-</span> <span class="sc">-</span><span class="dv">2</span> <span class="sc">+</span> x</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(logodds <span class="sc">+</span> <span class="fu">rlogis</span>(n) <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>logisticserfit <span class="ot">&lt;-</span> <span class="fu">logistic_ser_irls</span>(y, X, <span class="fl">1.0</span>)</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>lserlapfit <span class="ot">&lt;-</span> <span class="fu">logistic_ser_laplace</span>(y, X, <span class="fl">1.0</span>)</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>vbser <span class="ot">&lt;-</span> <span class="fu">logistic_ser_vb</span>(y, X, <span class="fl">1.</span>)</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>))</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(logisticserfit<span class="sc">$</span>psi, logodds, <span class="at">main=</span><span class="st">'IRLS-SER'</span>); <span class="fu">abline</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">col=</span><span class="st">'red'</span>)</span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lserlapfit<span class="sc">$</span>psi, logodds, <span class="at">main=</span><span class="st">'SER'</span>); <span class="fu">abline</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">col=</span><span class="st">'red'</span>)</span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(vbser<span class="sc">$</span>psi, logodds, <span class="at">main=</span><span class="st">'SER'</span>); <span class="fu">abline</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">col=</span><span class="st">'red'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/ser-fit-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="correlated-x" class="level3">
+<h3 class="anchored" data-anchor-id="correlated-x">Correlated X</h3>
+<p>In the following example we simulate under a logistic SER model with causal variable <span class="math inline">\(50\)</span>, and correlated design <span class="math inline">\(X\)</span>. The logistic SER fit via IRLS reports a CS <span class="math inline">\(\{ 49 \}\)</span>. Meanwhile, the logistic SER fit via the Laplace approximation reports a CS of <span class="math inline">\(\{49, 50\}\)</span>. If we repeat this experiment 50 times, we see that the logistic SER fit via IRLS systematically undercovers. Our nomial 95% credible attain a coverge of only <span class="math inline">\(84\%\)</span>, meanwhile the Laplace SER attains the target coverage.</p>
+<p>Here is the code for generating the simulations:</p>
+<div class="cell" data-hash="index_cache/html/irslser_vs_ser_correlated_x_demo_a074223aeba42d1fa03731e25e86b361">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>make_prec <span class="ot">&lt;-</span> <span class="cf">function</span> (n, rho){</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  prec <span class="ot">&lt;-</span> <span class="fu">diag</span>(<span class="fu">rep</span>(<span class="dv">1</span>, n))</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>(n<span class="dv">-1</span>)){</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    prec[i, i<span class="sc">+</span><span class="dv">1</span>] <span class="ot">&lt;-</span> rho</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    prec[i<span class="sc">+</span><span class="dv">1</span>, i] <span class="ot">&lt;-</span> rho</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(prec)</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a><span class="co">#' Simulate a single causal variant with mvn X, correlation determined by ls</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>sim_correlated_x <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">n =</span> <span class="dv">1000</span>, <span class="at">p =</span> <span class="dv">100</span>, <span class="at">ls =</span> <span class="dv">10</span>, <span class="at">idx=</span><span class="fu">as.integer</span>(p<span class="sc">/</span><span class="dv">2</span>)){</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>  Z <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n<span class="sc">*</span>p), <span class="at">nrow=</span>n)</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>  mix <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fl">0.5</span> <span class="sc">*</span> (<span class="fu">outer</span>(<span class="dv">1</span><span class="sc">:</span>p, <span class="dv">1</span><span class="sc">:</span>p, <span class="st">'-'</span>)<span class="sc">/</span>ls)<span class="sc">**</span><span class="dv">2</span>)</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>  X <span class="ot">&lt;-</span> Z <span class="sc">%*%</span> mix</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>  x <span class="ot">&lt;-</span> X[, idx]</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>  logodds <span class="ot">&lt;-</span> <span class="sc">-</span><span class="dv">2</span> <span class="sc">+</span> x</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>  y <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(logodds <span class="sc">+</span> <span class="fu">rlogis</span>(n) <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>  sim <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">X=</span>X, <span class="at">y=</span>y, <span class="at">logodds =</span> logodds)</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>  logisticserfit <span class="ot">&lt;-</span> <span class="fu">logistic_ser_irls</span>(y, X, <span class="fl">1.0</span>)</span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>  lserlapfit <span class="ot">&lt;-</span> <span class="fu">logistic_ser_laplace</span>(y, X, <span class="fl">1.0</span>)</span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>  vbser <span class="ot">&lt;-</span> <span class="fu">logistic_ser_vb</span>(y, X, <span class="fl">1.0</span>)</span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>  irls_cs <span class="ot">&lt;-</span> logisticserfit<span class="sc">$</span>cs</span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a>  lap_cs <span class="ot">&lt;-</span> lserlapfit<span class="sc">$</span>cs</span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a>  vb_cs <span class="ot">&lt;-</span> vbser<span class="sc">$</span>cs</span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a>  irls_covered <span class="ot">&lt;-</span> idx <span class="sc">%in%</span> irls_cs<span class="sc">$</span>cs</span>
+<span id="cb17-29"><a href="#cb17-29" aria-hidden="true" tabindex="-1"></a>  lap_covered <span class="ot">&lt;-</span> idx <span class="sc">%in%</span> lap_cs<span class="sc">$</span>cs</span>
+<span id="cb17-30"><a href="#cb17-30" aria-hidden="true" tabindex="-1"></a>  vb_covered <span class="ot">&lt;-</span> idx <span class="sc">%in%</span> vb_cs<span class="sc">$</span>cs</span>
+<span id="cb17-31"><a href="#cb17-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-32"><a href="#cb17-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">list</span>(</span>
+<span id="cb17-33"><a href="#cb17-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">irls_ser =</span> logisticserfit, <span class="at">irls_cs =</span> irls_cs, <span class="at">irls_covered =</span> irls_covered,</span>
+<span id="cb17-34"><a href="#cb17-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">lap_ser =</span>  lserlapfit, <span class="at">lap_cs =</span> lap_cs, <span class="at">lap_covered =</span> lap_covered,</span>
+<span id="cb17-35"><a href="#cb17-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">vb_ser =</span> vbser, <span class="at">vb_cs =</span> vb_cs, <span class="at">vb_covered =</span> vb_covered,</span>
+<span id="cb17-36"><a href="#cb17-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">sim =</span> sim))</span>
+<span id="cb17-37"><a href="#cb17-37" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Here is an example where the IRLS, VB, and Laplace methods report different credible sets. IRLS and VB each rely on a <em>global</em> approximation of the log likelihood for all variables. In contrast, the Laplace approach uses a separate approximation for each variable separately. When performing inference in the SER it is important to have accurate estimates of the relative evidence for inclusion of each variable. The problem with the global approximation approach is that the global approximation favors the variables with the strongest evidence.</p>
+<div class="cell" data-hash="index_cache/html/irslser_vs_ser_correlated_x_example_4e8d062e739fea11a5734f94d61be092">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">49</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>sim <span class="ot">&lt;-</span> <span class="fu">sim_correlated_x</span>()</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>sim<span class="sc">$</span>irls_cs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>$cs
+[1] 49
+
+$alpha
+[1] 0.9874565
+
+$size
+[1] 1
+
+$coverage
+[1] 0.9874565
+
+$target_coverage
+[1] 0.95</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>sim<span class="sc">$</span>vb_cs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>$cs
+[1] 49
+
+$alpha
+[1] 0.9965328
+
+$size
+[1] 1
+
+$coverage
+[1] 0.9965328
+
+$target_coverage
+[1] 0.95</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>sim<span class="sc">$</span>lap_cs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>$cs
+[1] 49 50
+
+$alpha
+[1] 0.93777606 0.03519582
+
+$size
+[1] 2
+
+$coverage
+[1] 0.9729719
+
+$target_coverage
+[1] 0.95</code></pre>
+</div>
+</div>
+<div class="cell" data-fig.asp="1" data-hash="index_cache/html/unnamed-chunk-1_ff1f4a8ca9cf9608e148819918acf779">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sim<span class="sc">$</span>irls_ser<span class="sc">$</span>lbf, <span class="fl">0.5</span><span class="sc">*</span>sim<span class="sc">$</span>lap_ser<span class="sc">$</span>lbf, <span class="at">xlab=</span><span class="st">'IRLS'</span>, <span class="at">ylab=</span><span class="st">'Laplace'</span>); </span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="at">col=</span><span class="st">'red'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell" data-hash="index_cache/html/irslser_vs_ser_correlated_x_rep_270389e8b3d2c124da25050ebac606c1">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>sim1 <span class="ot">&lt;-</span> xfun<span class="sc">::</span><span class="fu">cache_rds</span>({</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set.seed</span>(<span class="dv">12</span>)</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  purrr<span class="sc">::</span><span class="fu">map</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>, <span class="sc">~</span><span class="fu">sim_correlated_x</span>(<span class="at">n=</span><span class="dv">200</span>, <span class="at">p=</span><span class="dv">100</span>, <span class="at">ls=</span><span class="fl">20.</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>    tidyr<span class="sc">::</span><span class="fu">unnest_wider</span>(<span class="st">'.'</span>)</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a><span class="co"># plot predicted values against tru logodds</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-2_b515bfb452bf510a3a6ecb5f6275a415">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># show coverage</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>sim1 <span class="sc">%&gt;%</span> </span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">coverage_irls =</span> <span class="fu">mean</span>(irls_covered), </span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">coverage_laplace =</span> <span class="fu">mean</span>(lap_covered), </span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">coverage_vb =</span> <span class="fu">mean</span>(vb_covered))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 3
+  coverage_irls coverage_laplace coverage_vb
+          &lt;dbl&gt;            &lt;dbl&gt;       &lt;dbl&gt;
+1          0.83             0.95        0.85</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>irls <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">unlist</span>(purrr<span class="sc">::</span><span class="fu">map</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>, <span class="sc">~</span>sim1<span class="sc">$</span>irls_ser[[.x]]<span class="sc">$</span>psi)))</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>vb <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">unlist</span>(purrr<span class="sc">::</span><span class="fu">map</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>, <span class="sc">~</span>sim1<span class="sc">$</span>vb_ser[[.x]]<span class="sc">$</span>psi)))</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>lap <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">unlist</span>(purrr<span class="sc">::</span><span class="fu">map</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>, <span class="sc">~</span>sim1<span class="sc">$</span>lap_ser[[.x]]<span class="sc">$</span>psi)))</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>logodds <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">unlist</span>(purrr<span class="sc">::</span><span class="fu">map</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>, <span class="sc">~</span>sim1<span class="sc">$</span>sim[[.x]]<span class="sc">$</span>logodds)))</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>))</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(irls, logodds, <span class="at">main=</span><span class="st">'IRLS'</span>); <span class="fu">abline</span>(<span class="dv">0</span>,<span class="dv">1</span>, <span class="at">col=</span><span class="st">'red'</span>)</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(vb, logodds, <span class="at">main=</span><span class="st">'VB'</span>); <span class="fu">abline</span>(<span class="dv">0</span>,<span class="dv">1</span>, <span class="at">col=</span><span class="st">'red'</span>)</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lap, logodds, <span class="at">main=</span><span class="st">'Laplace'</span>); <span class="fu">abline</span>(<span class="dv">0</span>,<span class="dv">1</span>, <span class="at">col=</span><span class="st">'red'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cor</span>(<span class="fu">cbind</span>(irls, vb, lap, logodds))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>             irls        vb       lap   logodds
+irls    1.0000000 0.9993184 0.9994550 0.9861171
+vb      0.9993184 1.0000000 0.9998559 0.9822569
+lap     0.9994550 0.9998559 1.0000000 0.9844287
+logodds 0.9861171 0.9822569 0.9844287 1.0000000</code></pre>
+</div>
+</div>
+<p>Despite all three SER approaches having remarkably similar predictions, Laplace, the one variable at a time approach, has calibrated credible sets. The other methods undercover.</p>
+<p>If you look at the PIPs you see a different story. In IRLS and VB approaches, both “global” approximations, the PIPs are inflated compared to the one-variable at a time approach.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-3_9bd6a89ee9177ff18dce5e9ae91d1448">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># show coverage</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>sim1 <span class="sc">%&gt;%</span> </span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">coverage_irls =</span> <span class="fu">mean</span>(irls_covered), </span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">coverage_laplace =</span> <span class="fu">mean</span>(lap_covered), </span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">coverage_vb =</span> <span class="fu">mean</span>(vb_covered))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 3
+  coverage_irls coverage_laplace coverage_vb
+          &lt;dbl&gt;            &lt;dbl&gt;       &lt;dbl&gt;
+1          0.83             0.95        0.85</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>irls <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">unlist</span>(purrr<span class="sc">::</span><span class="fu">map</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>, <span class="sc">~</span>sim1<span class="sc">$</span>irls_ser[[.x]]<span class="sc">$</span>alpha)))</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>vb <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">unlist</span>(purrr<span class="sc">::</span><span class="fu">map</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>, <span class="sc">~</span>sim1<span class="sc">$</span>vb_ser[[.x]]<span class="sc">$</span>alpha)))</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>lap <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">unlist</span>(purrr<span class="sc">::</span><span class="fu">map</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>, <span class="sc">~</span>sim1<span class="sc">$</span>lap_ser[[.x]]<span class="sc">$</span>alpha)))</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>))</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lap, irls, <span class="at">main=</span><span class="st">'IRLS'</span>); <span class="fu">abline</span>(<span class="dv">0</span>,<span class="dv">1</span>, <span class="at">col=</span><span class="st">'red'</span>)</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lap, vb, <span class="at">main=</span><span class="st">'VB'</span>); <span class="fu">abline</span>(<span class="dv">0</span>,<span class="dv">1</span>, <span class="at">col=</span><span class="st">'red'</span>)</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lap, lap, <span class="at">main=</span><span class="st">'Laplace'</span>); <span class="fu">abline</span>(<span class="dv">0</span>,<span class="dv">1</span>, <span class="at">col=</span><span class="st">'red'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cor</span>(<span class="fu">cbind</span>(irls, vb, lap))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>          irls        vb       lap
+irls 1.0000000 0.9791457 0.9249517
+vb   0.9791457 1.0000000 0.9568826
+lap  0.9249517 0.9568826 1.0000000</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="discussion" class="level2">
+<h2 class="anchored" data-anchor-id="discussion">Discussion</h2>
+<p>We highlight a limitation of global approximation methods when it comes to performing inference in the single effect regression. Although the global and one-variable-at-a time approach provide remarkably similar predictions, we see dramatic differences in the PIPs, and consequently the CSs. The PIPs and CSs of the one-variable at a time method are better calibrated because they are informed by more accurate estimates of the evidence for the inclusion of each variable, wherase the global approximation methods tend to favor the variables with the strongest evidence and inflating their PIPs.</p>
+<p>In Bayesian variable selection, calibrated uncertainty estimates over which variables are selected are of primary importance. We favor the one-variable-at-a-time approach, which provide better estimates of the evidence for each variable separately.</p>
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">
+<div id="ref-jaakkolaVariationalApproachBayesian" class="csl-entry" role="doc-biblioentry">
+Jaakkola, Tommi S, and Michael I Jordan. n.d. <span>“A Variational Approach to <span>Bayesian</span> Logistic Regression Models and Their Extensions.”</span> <em>Sixth International Workshop on Artificial Intelligence and Statistics</em>, 283–94.
+</div>
+<div id="ref-polsonBayesianInferenceLogistic2013a" class="csl-entry" role="doc-biblioentry">
+Polson, Nicholas G., James G. Scott, and Jesse Windle. 2013. <span>“Bayesian Inference for Logistic Models Using <span>Polya-Gamma</span> Latent Variables.”</span> <span>arXiv</span>. <a href="http://arxiv.org/abs/1205.0310">http://arxiv.org/abs/1205.0310</a>.
+</div>
+<div id="ref-wenzelEfficientGaussianProcess2018" class="csl-entry" role="doc-biblioentry">
+Wenzel, Florian, Theo Galy-Fajou, Christan Donner, Marius Kloft, and Manfred Opper. 2018. <span>“Efficient <span>Gaussian Process Classification Using Polya-Gamma Data Augmentation</span>.”</span> <span>arXiv</span>. <a href="http://arxiv.org/abs/1802.06383">http://arxiv.org/abs/1802.06383</a>.
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
