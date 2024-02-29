@@ -8,8 +8,11 @@ toc: true
 
 ## TODO:
 
-* JJ approximation for univariate (also may more easily accomondate inclusion of intercept, uncertainty in offset, etc)
-* edit/expand existing sections
+- [ ] show that adaptive scheme is robust to the scaling factor we choose-- we just need to be in a few orders of magnitude of $\max \log p(y | x, b)$ for adaptive quadrature to work. I.e. we could integrate the likelihood ratio w.r.t the null model and be fine, rather than to the MAP soltn.
+- [ ] quantify how many evaluations of the likelihood each method takes. MAP, MLE, and MLE-MAP are all basically the same. But it would be good to know how many evaluations adaptive takes, and if the 4 or 5 nodes required for Gauss-Hermite represents a large increase in computational cost.
+- [ ] write discussion of the different simulation scenarios-- basically Laplace at the MAP is working well across the tested scenarios, and we get results that agree with adaptive quadrature with just 4 or 5 nodes. The tightness of JJ depends on the simulation scenario.
+- [ ] compare the posterior mean and posterior variance estimates for each of the methods also. This is important for GIBSS!
+- [ ] integrate stuff under old into the document, and put the 2d quadrature stuff into a separate document so that this is just about a fixed intercept.
 
 ## Setup
 
@@ -29,6 +32,18 @@ p(y | X) &= \int \prod p(y_i | x_i, b) p(b) db \\
 \end{align}
 
 The integrals cannot be computed in closed form, so we rely on numerical integration or approximation.
+
+## Adaptive quadrature
+
+We can use an adaptive quadrature scheme to compute the marginal likelihood, posterior mean, and posterior variance for our problem.
+
+The unnormalized likelihoods can be exceedingly small, especially for large data samples. In order to make the likelihood $h(x) = f(x)/\max_x(f(x))$ $\int f(x)dx = \max_x(f(x)) \int h(x)dx$. Applying our quadrature rule to the integral on the right avoids underflow issues.
+
+In order to perform the 1d quadrature we need two things: (1) the fixed intercept and (2) a number of order $\max_x(f(x))$ to normalize by. Both of these are provided by the MAP estimate.
+
+Note: if we were to pursue a 2d quadrature where we integrate over the intercept rather than fixing it, we might get away with normalizing by the likelihood at $\beta=0$. The null model is easy to fit, (and when we turn our attention to fitting the SER we will see that this computation can be done once per SER)
+
+At the end of the day we want to avoid using the adaptive quadrature scheme. It can involve many evaluations of the likelihood which is expensive. The goal of this document is to find a fast, cheap, stable method for approximating this more precise, but computationally demanding approach.
 
 
 ## Laplace Approximation
@@ -129,11 +144,20 @@ Integrals of this form a common in statistical applications.
 
 [@liuNoteGaussHermite1994] [@jackelNoteMultivariateGaussHermite]
 
-## Experiments
+## Polya-Gamma Augmentation/Jaakkola-Jordan
 
-### Code
+This is the standard variational approximation for logistic regression first introdced by Jaakola and Jordan. The develop a family of quadratic lower bounds to the binomial log likelihood [@jaakkolaVariationalApproachBayesian]. This approximation has an interpretation as a mean-field variational approximation to the Polya-Gamma augmented model, where the parameter $\xi$ that indexes the family of quadratic bounds corresponds to the variational approximation for the latent variable.
 
-#### Simulation functions
+Using the variational approximation is appealing because it presents few issues when it comes to dealing with a prior on the variance. The evidence lower bound gives a lower bound on the marginal log likelihood. While variational approximations are known to underestimate the posterior variance, we do not need the posterior variance for variable selection using GIBSS.
+
+Implemented in `logisticsusie::fit_univariate_vb`
+
+
+## Code
+
+### Simulation functions
+
+This creates the SER simulation that we've been working with. We simulate 3 enriched gene sets from mSigDB C1 on a background of 5000 genes. When the number of genes is small like this it is not uncommon to have completely enriched gene sets (that is, where $\{i: x_i = 1\} \subseteq \{i: y_i = 1\}$. 
 
 ```{r c1-example}
 ##### Minimal working example
@@ -159,11 +183,75 @@ make_c1_sim <- function(){
   X <- X[, Matrix::colSums(X) > 1]
   idx <- which(colnames(X) %in% enriched_gs)
 
-  list(X = X, y = y1, idx = idx, b = b, b0 = b0, logits=logit)
+  list(X = X, y = y1, o = rep(0, length(y1)), idx = idx, b = b, b0 = b0, logits=logit)
 }
 ```
 
-#### Simulation functions
+We look at a few other edgecases: complete enrichment, complete separation (for both binary and continuous $x$), and regular simulations (for both binary and continuous $x$).
+
+```{r}
+# "completely enriched"
+sim1 <- function(n=500){
+  set.seed(1)
+  x <- rbinom(n, 1, 0.2)
+  y <- rbinom(n, 1, 0.7)
+  y[x == 1] = 1
+  ll0 <- sum(dbinom(y, 1, mean(y), log=T))
+  return(list(x=x, y=y, ll0 = ll0, o = rep(0, length(y))))
+}
+
+# "completely separated, binary x"
+sim2 <- function(n=500){
+  set.seed(2)
+  x <- rbinom(n, 1, 0.2)
+  y <- x
+  ll0 <- sum(dbinom(y, 1, mean(y), log=T))
+  return(list(x=x, y=y, ll0 = ll0, o = rep(0, length(y))))
+}
+
+# "completely separated, continuous x"
+sim3 <- function(n=500){
+  set.seed(3)
+  x <- rnorm(n)
+  y <- as.integer(x > 1.5)
+  ll0 <- sum(dbinom(y, 1, mean(y), log=T))
+  return(list(x=x, y=y, ll0 = ll0, o = rep(0, length(y))))
+}
+
+# "regular simulation, binary x"
+sim4 <- function(n=500){
+  set.seed(4)
+  x <- rbinom(n, 1, 0.2)
+  logit <- -1 + x
+  prob <- 1/(1 + exp(-logit))
+  y <- rbinom(n, 1, prob)
+  ll0 <- sum(dbinom(y, 1, mean(y), log=T))
+  return(list(x=x, y=y, ll0 = ll0, o = rep(0, length(y))))
+}
+
+# "regular simulation, continuous x"
+sim5 <- function(n=500){
+  set.seed(4)
+  x <- rnorm(n)
+  logit <- -1 + x
+  prob <- 1/(1 + exp(-logit))
+  y <- rbinom(n, 1, prob)
+  ll0 <- sum(dbinom(y, 1, mean(y), log=T))
+  return(list(x=x, y=y, ll0 = ll0, o = rep(0, length(y))))
+}
+
+# "c1-GS66 example
+sim6 <- function(n=500){
+  sim <- make_c1_sim()
+  x <- sim$X[,66]
+  y <- sim$y
+  ll0 <- sum(dbinom(y, 1, mean(y), log=T))
+  return(list(x=x, y=y, ll0 = ll0, o = rep(0, length(y))))
+}
+```
+
+
+### Helper functions
 
 ```{r}
 logsumexp <- function(x){
@@ -178,8 +266,43 @@ Shift <- logisticsusie:::Shift
 Prod <- function(f, g){Vectorize(function(b) f(b) * g(b))}
 ```
 
+### Adaptive quadrature
 
-#### Expand around MLE
+```{r}
+#' note argument alpha, lets us scale the scaling factor-- make sure rults are not too dependent on logp at the MAP...
+adaptive <- function (x, y, o = NULL, prior_variance = 1, eps = 0, width = Inf, alpha=1) {
+    ridgefit <- logisticsusie:::ridge(x, y, o, prior_variance)
+    f <- logisticsusie:::make_log_joint_ridge(x, y, o, ridgefit)
+    range <- with(ridgefit, {
+        s <- 1/sqrt(tau0)
+        c(eps + mu - width * s, eps + mu + width * s)
+    })
+    lower <- range[1]
+    upper <- range[2]
+    if (lower > ridgefit$mu | upper < ridgefit$mu) {
+        warning("MAP is not in the integration interval")
+    }
+    C <- f(ridgefit$mu) + log(alpha)
+    f2 <- Exp(Shift(f, C))
+    logZ <- log(integrate(f2, lower, upper)$value) + C
+    D <- exp(C - logZ)
+    mu <- integrate(function(b) {
+        b * f2(b)
+    }, lower, upper)$value * D
+    mu2 <- integrate(function(b) {
+        b^2 * f2(b)
+    }, lower, upper)$value * D
+    var <- mu2 - mu^2
+    return(list(mu = mu, var = var, intercept = ridgefit$intercept, 
+        logZ = logZ))
+}
+```
+
+
+### Expand around MLE
+
+Here we implement the MLE-based Laplace approximation. We also implement a function that "unshrinks" the MAP estimates at one setting of the prior variance to estimate the mean and variance of the MLE. This is useful because we can then take this approximate MLE and use Laplace-MLE to approximate the posterior summaries under a different setting of the prior variance.
+
 
 ```{r}
 # compute log laplace bf expanded around the MLE
@@ -235,7 +358,9 @@ laplace_map <- function(fit, prior_variance=1){
 }
 ```
 
-#### Gauss-Hermite code
+### Gauss-Hermite code
+
+Here we implement Gauss-Hermite quadrature for the logistic regression problem. We allow flexibility in specifying $q$. Our goal generally is to find a robust way to pick $q$ that yields a strong approximation to the marginal likelihood with only a few quadrature points.
 
 ```{r}
 #' gauss-hermite quadrature for \int f(b) db
@@ -284,71 +409,191 @@ make_log_joint <- function (x, y, o, beta0, sigma2) {
 }
 
 #' fit has intercept, prior_variance, mu, tau, ll0
-gauss_hermite2 <- function(x, y, o, fit, m=9){
+gauss_hermite2 <- function(x, y, o, ll0, fit, m=9){
   f <- with(fit, make_log_joint(x, y, o, intercept, prior_variance))
   return(gauss_hermite(f, fit$mu, fit$tau, ll0, m = m))
 }
 ```
 
-
-### Example
-
-Here is a simple example where $x_i \sim N(0, 1)$ and $p(y_i=1) = \sigma(x_i)$ ($b_0 = 0, b = 1$).
+### Code for experiments
 
 ```{r}
-x <- rnorm(1000)
-y <- rbinom(1000, 1, 1/(1 + exp(-x)))
-o <- rep(0, length(y))
-ll0 <- sum(dbinom(y, 1, mean(y), log=T))
-prior_variance <- 1
+mle_fixed_intercept <- function (x, y, o, b0, ll0, family = "binomial") {
+    fit <- glm(y ~ x + 0, offset = (o+b0), family=family)
+    #fastglm::fastglm(y = y, x = as.matrix(x, ncol=1), offset = o + b0, family = family)
+    coef <- unname(fit$coefficients)
+    intercept <- b0
+    betahat <- coef[1]
+    shat2 <- summary(fit)$coef[1, 2]^2
+    ll <- -0.5 * fit$deviance
+    lr <- ll - ll0
+    res <- list(betahat = betahat, shat2 = shat2, intercept = intercept, 
+        lr = lr, ll0 = ll0, ll = ll)
+    return(res)
+}
+
+driver <- function(sim, prior_variance, max_m=32){
+  o <- rep(0, length(sim$y))
+  adaptive <- with(sim, logisticsusie::logistic_bayes(x, y, o, prior_variance))
+  mle <- with(sim, laplace_mle(
+    mle_fixed_intercept(x, y, o, adaptive$intercept, ll0), prior_variance=prior_variance))
+  map <- with(sim, logisticsusie:::ridge(x, y, o, prior_variance=prior_variance))
+  
+  jj <- with(sim, logisticsusie::fit_univariate_vb(x, y, o, tau0=1/prior_variance))
+  jj$logZ <- tail(jj$elbo, 1)
+  
+  gh_map <- with(sim, purrr::map(1:max_m, ~gauss_hermite2(x, y, o, ll0, map, m=.x)))
+  gh_mle <- with(sim, purrr::map(1:max_m, ~gauss_hermite2(x, y, o, ll0, mle, m=.x)))
+  
+  prior <- with(map, list(intercept=intercept, ll0=ll0, mu=0, prior_variance=prior_variance, tau0 = 1/prior_variance, tau=1/prior_variance))
+  gh_prior <- with(sim, purrr::map(1:max_m, ~gauss_hermite2(x, y, o, ll0, prior, m=.x)))
+  
+  return(list(adaptive=adaptive, mle=mle, map=map, jj = jj, gh_map=gh_map, gh_mle=gh_mle, gh_prior=gh_prior, prior=prior))
+}
+
+make_plot<- function(fits, ylim=NULL, val='logZ'){
+  # unpack
+  gh_map <- fits$gh_map
+  gh_mle <- fits$gh_mle
+  gh_prior <- fits$gh_prior
+  
+  adaptive <- fits$adaptive
+  mle <- fits$mle
+  map <- fits$map
+  jj <- fits$jj
+  
+  if(val == 'logZ'){
+    gh_map_vals <- purrr::map_dbl(gh_map, ~.x$logZ)
+    gh_mle_vals <- purrr::map_dbl(gh_mle, ~.x$logZ)
+    gh_prior_vals <- purrr::map_dbl(gh_prior, ~.x$logZ)
+    adaptive_val <- adaptive$logZ
+    map_val <- map$logZ
+    mle_val <- mle$logZ
+    jj_val <- jj$logZ
+  }
+  
+  max_m <- length(gh_map_vals)
+  
+  if(is.null(ylim)){
+    ylim <- range(gh_map_vals, gh_mle_vals, gh_prior_vals, adaptive_val, mle_val)
+  }
+  
+  plot(1:max_m, rep(adaptive_val, max_m), col='black', type='l', ylim=ylim, lwd=2,
+         xlab = 'Quadrature points', ylab='Posterior variance')
+  lines(1:max_m, rep(map_val, max_m), col='red')
+  lines(1:max_m, rep(mle_val, max_m), col='blue')
+  lines(1:max_m, rep(jj_val, max_m), col='purple')
+
+  points(1:max_m, gh_map_vals, col='red', pch=16)
+  points(1:max_m, gh_mle_vals, col='blue', pch=3)
+  points(1:max_m, gh_prior_vals, col='green', pch=1)
+}
+
+make_legend <- function(){
+  plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1)
+  legend('topleft',
+         legend=c('GH (MAP)',
+                  'GH (MLE)', 
+                  'GH (Prior)'),
+         col=c('red', 'blue', 'green'),
+         pch=c(16, 3, 1))
+  
+  legend('bottomleft', legend=c('Adaptive', 'Laplace (MAP)', 'Laplace (MLE)', 'JJ'),
+         col=c('black', 'red', 'blue', 'purple'), lty=1:1)
+}
+```
+
+## Experiments
+
+Output: a plot that shows accuracy of a posterior summary for
+
+- [ ] Adaptive quadrature
+- [ ] Laplace approximation
+- [ ] Gauss-Hermite quadrature (MAP) (at range of quadrature points)
+- [ ] Gauss-Hermite quadrature (MLE) (at range of quadrature points)
+- [ ] Gauss-Hermite quadrature (Prior) (at range of quadrature points)
+- [ ] Gauss-Hermite quadrature (other expansion point) (at range of quadrature points)
+
+
+We plot the number of quadrature points against the approximate the the log-marginal likelihood. For Laplace-MAP, Laplace-MLE, Jaakkola-Jordan, and adaptive quadrature we plot the log-marginal likelihood as a horizontal line.
+
+The left panel shows the log-marginal likelihood on a scale where all results are visible, this gives us a birds eye view of the accuracy of our method and helps us characterize in what scenarios method(s) fail. On the write panel we zoom in to $\log p(y | x) \pm 0.5$ to show accuracy on a finer scale. 
+
+### Completely enriched
+
+In the completely enriched case the MLE does not exist and we get degenerate estimates from software for computing the MLE. The exceedingly large standard error means that Laplace-MLE essentially gives the prior.
+
+```{r}
+sim <- sim1()
+fits <- driver(sim, 1., 16)
+
+par(mfrow=c(1, 3))
+make_plot(fits)
+make_plot(fits, ylim=c(-0.5, 0.5) + fits$adaptive$logZ)
+make_legend()
+```
+
+### Seperable, binary covariate
+
+```{r}
+sim <- sim2()
+fits <- driver(sim, 1., 16)
+
+par(mfrow=c(1, 3))
+make_plot(fits)
+make_plot(fits, ylim=c(-0.1, 0.1) + fits$adaptive$logZ)
+make_legend()
+```
+
+### Seperable, continuous covariate
+
+```{r}
+sim <- sim3()
+fits <- driver(sim, 1., 16)
+
+par(mfrow=c(1, 3))
+make_plot(fits)
+make_plot(fits, ylim=c(-0.1, 0.1) + fits$adaptive$logZ)
+make_legend()
+```
+### Regular, binary covariate
+
+```{r}
+sim <- sim4()
+fits <- driver(sim, 1., 16)
+
+par(mfrow=c(1, 3))
+make_plot(fits)
+make_plot(fits, ylim=c(-0.1, 0.1) + fits$adaptive$logZ)
+make_legend()
+```
+### Regular, continuous covariate
+
+```{r}
+sim <- sim5()
+fits <- driver(sim, 1., 16)
+
+par(mfrow=c(1, 3))
+make_plot(fits)
+make_plot(fits, ylim=c(-0.1, 0.1) + fits$adaptive$logZ)
+make_legend()
+```
+
+### C1-GS66 example
+
+```{r}
+sim <- sim6()
+fits <- driver(sim, 1., 16)
+
+par(mfrow=c(1, 3))
+make_plot(fits)
+make_plot(fits, ylim=c(-0.1, 0.1) + fits$adaptive$logZ)
+make_legend()
 ```
 
 
-```{r, eval=TRUE}
-# mle
-mle <- logisticsusie:::fit_fast_glm(x, y, rep(0, length(y)), ll0)
-mle <- laplace_mle(mle)
-mle$logZ
+## OLD
 
-# MAP prior variance = 1
-# this gives the MAP-based (standard) Laplace approximation
-fit1 <- logisticsusie:::ridge(x, y, o, prior_variance=1)
-fit1$logZ
-
-gauss_hermite2(x, y, o, fit1, m=1)$logZ # should agree with laplace
-gauss_hermite2(x, y, o, fit1, m=9)$logZ # note: odd number of nodes?
-
-# unshrink, reshrink
-# check that our "unshrink" operation works
-mle2 <- unshrink(fit1)
-fit11 <- laplace_mle(mle2, prior_variance = 1)
-fit11$logZ
-
-# MAP prior variance = 10
-fit10 <- logisticsusie:::ridge(x, y, o, prior_variance=10)
-fit10_1 <- laplace_map(fit10, prior_variance=1)
-fit10_1$logZ # expand around MAP for prior_variance = 10, approximate logZ for prior_variance=1
-gauss_hermite2(x, y, o, fit10_1, m=1)$logZ # slightly different, actually evaluates new point rather than approximate
-gauss_hermite2(x, y, o, fit10_1, m=9)$logZ
-
-# MAP prior variance = 1000, basically MLE
-fit1000 <- logisticsusie:::ridge(x, y, o, prior_variance=1000)
-fit1000_1 <- laplace_map(fit10, prior_variance=1)
-fit1000_1$logZ
-gauss_hermite2(x, y, o, fit1000_1, m=1)$logZ # slightly different, actually evaluates new point rather than approximate
-gauss_hermite2(x, y, o, fit1000_1, m=9)$logZ
-
-# MAP prior variance = 1e-10, basically null model
-fit1en10 <- logisticsusie:::ridge(x, y, o, prior_variance=1e-10)
-fit1en10_1 <- laplace_map(fit1en10, prior_variance=1)
-fit1en10_1$logZ
-
-# suprisingly, we can get some information out of the nearly zero effect estimate!
-gauss_hermite2(x, y, o, fit1en10_1, m=1)$logZ # slightly different, new expansion point given by MAP approximation
-gauss_hermite2(x, y, o, fit1en10_1, m=9)$logZ
-gauss_hermite2(x, y, o, fit1en10_1, m=17)$logZ
-gauss_hermite2(x, y, o, fit1en10_1, m=33)$logZ
-```
 
 
 ### Gauss-Hermite Quadrature
@@ -361,20 +606,6 @@ We need to make a choice about where to "center" the prior
 In this simulation the Laplace approximation is extremely accurate, and it only take 4 quadrature points
 to get a Gauss-Hermite quadrature rule that matches adaptive quadrature.
 
-```{r}
-# adaptive quadrature
-quad <- logisticsusie::logistic_bayes(x, y, prior_variance=prior_variance, width=Inf)
-quad$logZ
-
-# MAP prior variance = 1
-fit1 <- logisticsusie:::ridge(x, y, o, prior_variance=1)
-fit1$logZ == gauss_hermite2(x, y, o, fit1, m=1)$logZ # should agree with laplace
-
-par(mfrow=c(1, 1))
-gh <- purrr::map_dbl(1:32, ~gauss_hermite2(x, y, o, fit1, m=.x)$logZ)
-plot(1:32, gh[1:32]); abline(h = quad$logZ, col='red')
-```
-
 ### Gauss-Hermite, approximate MAP
 
 #### MAP-MLE
@@ -383,32 +614,11 @@ Here we first compute the MLE, and then approximate the MAP by taking a quadrati
 
 We see that the MLE-based MAP approximation is not very good. But the situation quickly improves even for the one-point Gauss-Hermite quadrature. The one point quadrature and Laplace approximation correspond when the single evaluation point is the mode, and the Gauss-Hermite quadrature rule is appropriately transformed to reflect the curvature at this point [@liuNoteGaussHermite1994]. However, this does not hold at the approximate MAP. First, the approximation of the likelihood at the approximate MAP is only an approximation. Second, the $1$-point Gauss-Hermite quadrature does not quite correspond to the expansion at the approximate MAP, as the first order term in the approximation is assumed to be zero. For that to be true we must either be at the mode (so the gradient is 0) or the mean (so the expected value of the first order term is 0)$.
 
-```{r}
-# mle
-mle <- logisticsusie:::fit_fast_glm(x, y, rep(0, length(y)), ll0)
-mle <- laplace_mle(mle)
-
-mle$logZ
-gauss_hermite2(x, y, o, mle, m=1)$logZ # should agree with laplace
-
-gh <- purrr::map_dbl(1:32, ~gauss_hermite2(x, y, o, mle, m=.x)$logZ)
-
-par(mfrow=c(1, 2))
-plot(1:32, gh[1:32], ylim=range(gh, mle$logZ, fit1$logZ, quad$logZ));
-abline(h = quad$logZ, col='red');
-abline(h = fit1$logZ, col='blue');
-abline(h = mle$logZ, col='green');
-
-plot(1:32, gh[1:32], ylim=range(gh, fit1$logZ, quad$logZ));
-abline(h = quad$logZ, col='red');
-abline(h = fit1$logZ, col='blue');
-```
-
 #### MAP-MAP
 
 Here we compute the MAP at some other value of the prior variance. We then "unshrink" the fit, and then "reshrink" it at the prior variance of interest.
 
-```{r}
+```{r eval=FALSE}
 fit10 <- logisticsusie:::ridge(x, y, o, prior_variance=10)
 fit10_1 <- laplace_map(fit10, prior_variance=1)
 
@@ -430,7 +640,7 @@ abline(h = fit1$logZ, col='blue');
 
 The "unshrink" then "reshrink" procedure is probably better when we want to shrink more aggressively, but can be unreliable when we want to shrink less aggressively. In the extreme, we set the prior variance to a very small value. The MLE is way out in the tail of this Laplace approximation and our reconstruction can be very poor. Here we see even as we increase the number of quadrature points, the approximation fails to converge to the true value.
 
-```{r}
+```{r eval=FALSE}
 fit1em5 <- logisticsusie:::ridge(x, y, o, prior_variance=1e-10)
 fit1em5_1 <- laplace_map(fit1em5, prior_variance=1)
 
@@ -458,7 +668,7 @@ We see that (1) it takes a large number of quadrature points to get a good appro
 Note that we fix the intercept at the MAP estimate of the intercept, so that we can expect as the quadrature points increase, the marginal likelihood should converge to the same result as adaptive quadrature and Gauss-Hermite at the MAP.
 
 
-```{r}
+```{r eval=FALSE}
 null_intercept <- log(mean(y)/mean(1-y))
 ll <- sum(dbinom(y, 1, 1/(1 + exp(-quad$intercept)), log=T))
 null <- list(mu = 0, prior_variance=1, tau0 = 1, intercept = quad$intercept, ll=ll, ll0 = ll0)
@@ -563,19 +773,21 @@ It is satisfying also, that we restore our relationship between the (multivariat
 
 
 ```{r}
-integrate_intercept(x, y, o, 1, m_int=1, m=1)
-integrate_intercept(x, y, o, 1, m_int=-1, m=1)
-
-integrate_intercept(x, y, o, 1, m_int=1, m=64)
-integrate_intercept(x, y, o, 1, m_int=-1, m=64)
-
-integrate_intercept(x, y, o, 1, m_int=3, m=3)
-integrate_intercept(x, y, o, 1, m_int=5, m=5)
-integrate_intercept(x, y, o, 1, m_int=1, m=5)
-integrate_intercept(x, y, o, 1, m_int=1, m=5)
-
-integrate_intercept(x, y, o, 1, m_int=64, m=64)
-integrate_intercept(x, y, o, 1, m_int=128, m=128)
+with(sim, {
+  integrate_intercept(x, y, o, 1, m_int=1, m=1)
+  integrate_intercept(x, y, o, 1, m_int=-1, m=1)
+  
+  integrate_intercept(x, y, o, 1, m_int=1, m=64)
+  integrate_intercept(x, y, o, 1, m_int=-1, m=64)
+  
+  integrate_intercept(x, y, o, 1, m_int=3, m=3)
+  integrate_intercept(x, y, o, 1, m_int=5, m=5)
+  integrate_intercept(x, y, o, 1, m_int=1, m=5)
+  integrate_intercept(x, y, o, 1, m_int=1, m=5)
+  
+  integrate_intercept(x, y, o, 1, m_int=64, m=64)
+  integrate_intercept(x, y, o, 1, m_int=128, m=128)
+})
 ```
 
 ### Multivariate Gauss-Hermite
