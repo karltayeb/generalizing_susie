@@ -14,6 +14,13 @@ toc: true
 - [ ] compare the posterior mean and posterior variance estimates for each of the methods also. This is important for GIBSS!
 - [ ] integrate stuff under old into the document, and put the 2d quadrature stuff into a separate document so that this is just about a fixed intercept.
 
+## Introduction
+
+We talk about different approaches for computing $\log p(y | x) = \log \int p(y, b | x) db$ for univaraite logistic regression with a fixed intercept, and a Gaussian prior on $b$. We consider the following methods: (1) adaptive quadrature, (2) Laplace approximation, (3) Gauss-Hermite quadrature, and (4) Polya-Gamma augmentation. We also consider the Laplace approximation expanded around the MLE, and the Gauss-Hermite quadrature expanded around the approximation of the MAP from Laplace-MLE. We look at the behavior of these methods in normal scenarios and a few edge cases which are not uncommon in the GSEA application.
+
+Ultimately we find that the Laplace-MLE is not reliable on it's own, and can generally behave badly in the edge cases. Laplace-MAP does well across all the tested scenarios, and can be refined using Gauss-Hermite quadrature to almost exact results with just 4 or 5 additional likelihood evaluations.
+
+
 ## Setup
 
 Here we consider logistic regression with a single covariate and fixed intercept. $\tau$ is a fixed prior precision.
@@ -463,6 +470,7 @@ make_plot<- function(fits, ylim=NULL, val='logZ'){
   jj <- fits$jj
   
   if(val == 'logZ'){
+    ylab = 'Log marginal likelihood'
     gh_map_vals <- purrr::map_dbl(gh_map, ~.x$logZ)
     gh_mle_vals <- purrr::map_dbl(gh_mle, ~.x$logZ)
     gh_prior_vals <- purrr::map_dbl(gh_prior, ~.x$logZ)
@@ -472,6 +480,17 @@ make_plot<- function(fits, ylim=NULL, val='logZ'){
     jj_val <- jj$logZ
   }
   
+  if(val == 'mu'){
+    ylab = 'Posterior mean'
+    gh_map_vals <- purrr::map_dbl(gh_map, ~.x$mu)
+    gh_mle_vals <- purrr::map_dbl(gh_mle, ~.x$mu)
+    gh_prior_vals <- purrr::map_dbl(gh_prior, ~.x$mu)
+    adaptive_val <- adaptive$mu
+    map_val <- map$mu
+    mle_val <- mle$mu
+    jj_val <- jj$mu
+  }
+  
   max_m <- length(gh_map_vals)
   
   if(is.null(ylim)){
@@ -479,7 +498,7 @@ make_plot<- function(fits, ylim=NULL, val='logZ'){
   }
   
   plot(1:max_m, rep(adaptive_val, max_m), col='black', type='l', ylim=ylim, lwd=2,
-         xlab = 'Quadrature points', ylab='Posterior variance')
+         xlab = 'Quadrature points', ylab=ylab)
   lines(1:max_m, rep(map_val, max_m), col='red')
   lines(1:max_m, rep(mle_val, max_m), col='blue')
   lines(1:max_m, rep(jj_val, max_m), col='purple')
@@ -533,6 +552,14 @@ make_plot(fits, ylim=c(-0.5, 0.5) + fits$adaptive$logZ)
 make_legend()
 ```
 
+```{r}
+par(mfrow=c(1, 3))
+make_plot(fits, val='mu')
+make_plot(fits, ylim=c(-1, 1)*sqrt(fits$adaptive$var) + fits$adaptive$mu, val='mu')
+make_legend()
+```
+
+
 ### Seperable, binary covariate
 
 ```{r}
@@ -545,6 +572,14 @@ make_plot(fits, ylim=c(-0.1, 0.1) + fits$adaptive$logZ)
 make_legend()
 ```
 
+```{r}
+par(mfrow=c(1, 3))
+make_plot(fits, val='mu')
+make_plot(fits, ylim=c(-1, 1)*sqrt(fits$adaptive$var) + fits$adaptive$mu, val='mu')
+make_legend()
+```
+
+
 ### Seperable, continuous covariate
 
 ```{r}
@@ -556,6 +591,14 @@ make_plot(fits)
 make_plot(fits, ylim=c(-0.1, 0.1) + fits$adaptive$logZ)
 make_legend()
 ```
+
+```{r}
+par(mfrow=c(1, 3))
+make_plot(fits, val='mu')
+make_plot(fits, ylim=c(-1, 1)*sqrt(fits$adaptive$var) + fits$adaptive$mu, val='mu')
+make_legend()
+```
+
 ### Regular, binary covariate
 
 ```{r}
@@ -567,6 +610,14 @@ make_plot(fits)
 make_plot(fits, ylim=c(-0.1, 0.1) + fits$adaptive$logZ)
 make_legend()
 ```
+
+```{r}
+par(mfrow=c(1, 3))
+make_plot(fits, val='mu')
+make_plot(fits, ylim=c(-1, 1)*sqrt(fits$adaptive$var) + fits$adaptive$mu, val='mu')
+make_legend()
+```
+
 ### Regular, continuous covariate
 
 ```{r}
@@ -578,6 +629,14 @@ make_plot(fits)
 make_plot(fits, ylim=c(-0.1, 0.1) + fits$adaptive$logZ)
 make_legend()
 ```
+
+```{r}
+par(mfrow=c(1, 3))
+make_plot(fits, val='mu')
+make_plot(fits, ylim=c(-1, 1)*sqrt(fits$adaptive$var) + fits$adaptive$mu, val='mu')
+make_legend()
+```
+
 
 ### C1-GS66 example
 
@@ -591,6 +650,12 @@ make_plot(fits, ylim=c(-0.1, 0.1) + fits$adaptive$logZ)
 make_legend()
 ```
 
+```{r}
+par(mfrow=c(1, 3))
+make_plot(fits, val='mu')
+make_plot(fits, ylim=c(-1, 1)*sqrt(fits$adaptive$var) + fits$adaptive$mu, val='mu')
+make_legend()
+```
 
 ## OLD
 
