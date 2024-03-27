@@ -1,0 +1,189 @@
+---
+title: "Wakefield's ABF"
+date: 2024-02-08
+description: "Wakefield bad, Laplace better"
+author:
+  - name: Karl Tayeb
+    id: kt
+    email: ktayeb@uchicago.edu
+    affiliation: 
+      - name: University of Chicago
+        city: Chicago
+        state: IL
+keywords:
+  - fine-mapping
+toc: true
+code-fold: true
+---
+
+Wakefield's asymptotic Bayes factor is an approximation of the Bayes factor that can be computed with summary statistics. 
+It is convenient because it can be computed from commonly available summary data, avoids requiring us to specify a prior on nuisance parameters, and avoids the resulting computational costs that would result from marginalizing out the nuisance parameters. 
+
+However, an important caveat is that Wakefield's ABF is not a consistent estimator of the Bayes factor (Q: is it right to call this consistency? We're chasing a moving target). Let $ABF_n$ to be the ABF for sample size $n$. If the alternative is true and $\beta \neq 0$ as $n\rightarrow \infty$ $ABF_n \rightarrow \infty$, however it seems that $ABF_n / BF_n \rightarrow 0$. Wakefield says, "The ABF is consistent under both the null and the alternative-- *the correct model is chosen with probability $1$ as the sample sizes increase.*". 
+
+Below we emprirically explore how Wakefield's ABF diverges from the exact BF (which we compute numerically).
+
+
+### Code
+
+Here is some code to simulate under a logistic model and compute the ABF and BF. 
+
+To avoid confusion about the contribution of the intercept, we also consider consider the fixed intercept case, so that alternate hypothesis is simple and we can just compute the likelihood at the fixed intercept for the denomintaro of the BF.
+
+```{r code }
+simulate <- function(n, b0, b){
+  x <- rnorm(n)
+  logit <- b0 + x * b
+  pi1 <- 1/(1 + exp(-logit))
+  y <- rbinom(n, 1, pi1)
+  return(list(x=x, y=y, logit=logit))
+}
+
+#' fit logistic regression
+fit_logistic <- function(x, y){
+  fit <- glm(y ~ x + 1, family='binomial')
+  b0hat <- fit$coef[1]
+  bhat <- fit$coef[2]
+  std <- summary(fit)$coef[2,2]
+  return(list(b0hat = b0hat, bhat=bhat, std=std))
+}
+
+#' compute log ABF for a give prior variance
+compute_labf <- function(x, y, prior_variance){
+  fit <- fit_logistic(x, y)
+  labf <- with(fit, dnorm(bhat, 0, sqrt(std^2 + prior_variance), log=T) - dnorm(bhat, 0, std, log=T))
+  return(unname(labf))
+}
+
+#' fit logistic regression with a fixed intercept
+fit_logistic_fixed_intercept <- function(x, y, b0){
+  fit <- glm(y ~ x + 0, offset=rep(b0, length(y)), family='binomial')
+  bhat <- fit$coef[1]
+  std <- summary(fit)$coef[1,2]
+  return(list(b0=b0, bhat=bhat, std=std))
+}
+
+#' compute log ABF with a fixed intercept
+compute_labf_fixed_intercept <- function(x, y, b0, prior_variance){
+  fit <- fit_logistic_fixed_intercept(x, y, b0)
+  labf <- with(fit, dnorm(bhat, 0, sqrt(std^2 + prior_variance), log=T) - dnorm(bhat, 0, std, log=T))
+  return(unname(labf))
+}
+
+#' compute log ABF, fit logistic regression with a fixed intercept
+compute_lbf_fixed_intercept <- function (x, y, b0, prior_variance = 1, m = 16) {
+  llfun <- Vectorize(function(b) {
+    psi <- b0 + x * b
+    sum((y * psi) - log(1 + exp(psi))) + dnorm(b, 0, 
+        sd = sqrt(prior_variance), log = T)
+  })
+  fit <- fit_logistic_fixed_intercept(x, y, b0)
+  marginal <- with(fit, logisticsusie:::gauss_hermite(llfun, 1/std^2, bhat, m))
+  null <- llfun(0)
+  return(marginal$logZ - llfun(0))
+}
+
+#' compute log BF using quadrature
+#' in the numerator fix b0 to its MLE
+#' in the denomintar fix b0 to its MLE under the null
+compute_lbf <- function (x, y, prior_variance = 1, m = 16) {
+  fit <- fit_logistic(x, y)
+  b0 <- fit$b0hat
+  llfun <- Vectorize(function(b) {
+    psi <- b0 + x * b
+    sum((y * psi) - log(1 + exp(psi))) + dnorm(b, 0, 
+        sd = sqrt(prior_variance), log = T)
+  })
+  
+  mu <- optimise(llfun, c(-100, 100), maximum = T)$maximum
+  
+  psi <- b0 + x * mu
+  p <- 1/(1 + exp(-psi))
+  tau <- sum(p * (1-p)) + 1/prior_variance
+  
+  marginal <- with(fit, logisticsusie:::gauss_hermite(llfun, tau, mu, m))
+  null <- sum(dbinom(y, 1, mean(y), log=T))
+  return(marginal$logZ - null)
+}
+
+#' simulate under a logistic model
+#' then compute ABF and BF
+sim1 <- function(n, b0=-1, b=0.1, prior_variance=1) {
+  sim <- simulate(n, b0, b)
+  labf <- with(sim, compute_labf(x, y, prior_variance = prior_variance))
+  labf_fixed <- with(sim, compute_labf_fixed_intercept(x, y, b0, prior_variance = prior_variance))
+  lbf <- with(sim, compute_lbf(x, y, prior_variance = prior_variance, m = 16))
+  lbf_fixed <- with(sim, compute_lbf_fixed_intercept(x, y, b0, prior_variance = prior_variance, m = 16))
+  
+  fit <- fit_logistic(sim$x, sim$y)
+  zhat <- with(fit, bhat/std)
+  list(n = n, b0=b0, b=b, zhat = zhat, labf = labf, labf_fixed=labf_fixed, lbf = lbf, lbf_fixed = lbf_fixed)
+}
+```
+
+### Demonstration
+
+We simulate under a logistic model with $b = 0.5, 1, 2, 3, 4, 5$. We vary the sample size from $n=100$ to $n=10000$.
+We see that for a fixed effect size as $n$ increases $ABF_n$ and $BF_n$ diverge. For the larger effect sizes it looks like $\log \text{ABF} \approx \frac{1}{b} \log BF$
+
+
+```{r}
+res1 <- purrr::map_dfr(seq(2, 4, by=0.1), ~sim1(as.integer(10^.x), b=0.5))
+res2 <- purrr::map_dfr(seq(2, 4, by=0.1), ~sim1(as.integer(10^.x), b=1))
+res3 <- purrr::map_dfr(seq(2, 4, by=0.1), ~sim1(as.integer(10^.x), b=2))
+```
+
+```{r}
+#| fig.asp = 0.5
+
+par(mfrow = c(1, 3))
+
+rng <- range(res1$lbf)
+with(res1, {
+  plot(lbf, labf, main = 'b=0.5', xlim=rng, ylim=rng)
+  abline(0, 1, col='red')
+})
+
+with(res2, {
+  plot(lbf, labf, main = 'b=1', xlim=rng, ylim=rng)
+  abline(0, 1, col='red')
+})
+
+with(res3, {
+  plot(lbf, labf, main = 'b=2', xlim=rng, ylim=rng)
+  abline(0, 1, col='red')
+})
+```
+
+
+
+```{r}
+res4 <- purrr::map_dfr(seq(2, 4, by=0.1), ~sim1(as.integer(10^.x), b=3))
+res5 <- purrr::map_dfr(seq(2, 4, by=0.1), ~sim1(as.integer(10^.x), b=4))
+res6 <- purrr::map_dfr(seq(2, 4, by=0.1), ~sim1(as.integer(10^.x), b=5))
+```
+
+```{r}
+#| fig.asp = 0.5
+
+par(mfrow = c(1, 3))
+
+rng <- range(res4$lbf)
+with(res4, {
+  plot(lbf, labf, main = 'b=3', xlim=rng, ylim=rng)
+  abline(0, 1, col='red')
+  abline(0, 1/3, col='blue')
+})
+
+with(res5, {
+  plot(lbf, labf, main = 'b=4', xlim=rng, ylim=rng)
+  abline(0, 1, col='red')
+  abline(0, 1/4, col='blue')
+})
+
+with(res6, {
+  plot(lbf, labf, main = 'b=5', xlim=rng, ylim=rng)
+  abline(0, 1, col='red');
+  abline(0, 1/5, col='blue')
+})
+```
